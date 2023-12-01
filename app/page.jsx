@@ -16,12 +16,12 @@ export default function Home() {
         if (user && user.emailVerified) {
           const uid = user.uid;
         } else {
-          router.push("/signup");
+          router.push("/login");
         }
       }),
-    []
+    [router]
   );
-  //const q = query(collection(db, "users"), orderBy("time", "desc"));
+  const q = query(collection(db, "users"), orderBy("time", "desc"));
   useEffect(
     () =>
       onSnapshot(collection(db, "users"), (snapshot) => {
@@ -32,7 +32,7 @@ export default function Home() {
     []
   );
   return (
-    <main className="flex flex-col flex-1">
+    <main className="h-screen overflow-hidden flex flex-col">
       <Header />
       <CategoriesBar />
       {/* <ul>

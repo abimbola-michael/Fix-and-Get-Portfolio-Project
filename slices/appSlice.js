@@ -3,6 +3,8 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   tab: 0,
   category: -1,
+  chatId: "",
+  searchId: "",
 };
 const appSlice = createSlice({
   name: "app",
@@ -14,8 +16,15 @@ const appSlice = createSlice({
     changeCategory(state, action) {
       state.category = action.payload;
     },
+    changeChat(state, action) {
+      state.chatId = action.payload;
+    },
+    changeSearch(state, action) {
+      state.searchId = action.payload;
+    },
   },
 });
 
 export default appSlice.reducer;
-export const { changeTab, changeCategory } = appSlice.actions;
+export const { changeTab, changeCategory, changeChat, changeSearch } =
+  appSlice.actions;
