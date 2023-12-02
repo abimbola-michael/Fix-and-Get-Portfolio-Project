@@ -34,7 +34,7 @@ export default function CategoriesBar() {
       className="max-w-4xl h-[60%] w-full p-2 mx-auto flex items-stretch gap-3 group"
       onMouseLeave={handleMouseLeave}
     >
-      <ul className="w-[20%] shrink-0 flex flex-col gap-2 justify-between">
+      <ul className="w-[20%] shrink-0 flex flex-col gap-2 justify-between overflow-y-auto">
         {categories.map((category) => (
           <li
             key={category.name}

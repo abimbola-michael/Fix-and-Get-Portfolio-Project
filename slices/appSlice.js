@@ -5,6 +5,7 @@ const initialState = {
   category: -1,
   chatId: "",
   searchId: "",
+  searchText: "",
 };
 const appSlice = createSlice({
   name: "app",
@@ -22,9 +23,17 @@ const appSlice = createSlice({
     changeSearch(state, action) {
       state.searchId = action.payload;
     },
+    changeSearchText(state, action) {
+      state.searchText = action.payload;
+    },
   },
 });
 
 export default appSlice.reducer;
-export const { changeTab, changeCategory, changeChat, changeSearch } =
-  appSlice.actions;
+export const {
+  changeTab,
+  changeCategory,
+  changeChat,
+  changeSearch,
+  changeSearchText,
+} = appSlice.actions;

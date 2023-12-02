@@ -32,7 +32,7 @@ export default function Profile() {
     <div className="h-screen w-full max-w-4xl mx-auto overflow-hidden flex flex-col">
       <Header />
       <p className="font-bold text-lg mx-4 my-2">Profile</p>
-      <div className="flex flex-col overflow-y-auto">
+      <div className="overflow-y-auto">
         <div className="flex flex-col gap-3 items-center max-w-4xl">
           <div
             className="w-full h-[150px] relative"

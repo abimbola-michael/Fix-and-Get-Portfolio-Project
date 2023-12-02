@@ -50,13 +50,13 @@ export default function Actions() {
                 } hover:text-blue-500 `}
               />
             </Link>
-            <Link href={"/favorite"}>
+            {/* <Link href={"/favorite"}>
               <GrFavorite
                 className={`${
                   pathname === "/favorite" ? "text-blue-500" : ""
                 } hover:text-blue-500 `}
               />
-            </Link>
+            </Link> */}
             <Link href={"/list"}>
               <LuList
                 className={`${

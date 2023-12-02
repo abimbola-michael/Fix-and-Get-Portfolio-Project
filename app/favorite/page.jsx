@@ -7,12 +7,11 @@ import React, { useState } from "react";
 export default function Favorite() {
   const [currentTab, setCurrentTab] = useState("Fixers");
   return (
-    <div className="h-screen overflow-hidden flex flex-col">
+    <div className="w-full max-w-4xl mx-auto h-screen overflow-hidden flex flex-col">
       <Header />
+      <p className="font-bold text-lg mx-4 my-2">Favorites</p>
 
-      <div className="w-full max-w-4xl mx-auto overflow-y-auto">
-        <p className="font-bold text-lg mx-4 my-2">Favorites</p>
-        {/* <FavoriteTabBar /> */}
+      <div className="overflow-y-auto">
         <div className="w-full flex justify-evenly mb-4">
           <HomeTab
             name="Fixers"

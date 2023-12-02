@@ -32,9 +32,12 @@ export default function Home() {
     []
   );
   return (
-    <main className="h-screen overflow-hidden flex flex-col">
+    <main className="w-full max-w-4xl mx-auto h-screen overflow-hidden flex flex-col">
       <Header />
       <CategoriesBar />
+      <div className="w-full my-4 space-y-3">
+        <h1 className="font-bold text-lg">Feeds</h1>
+      </div>
       {/* <ul>
         {users.map((user) => (
           <p key={user.email}>{user.name}</p>

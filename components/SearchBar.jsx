@@ -1,10 +1,13 @@
 "use client";
+import { changeSearchText } from "@/slices/appSlice";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { IoSearchCircle } from "react-icons/io5";
+import { useDispatch } from "react-redux";
 
 export default function SearchBar({ onSearch, searching }) {
   const [text, setText] = useState("");
+  const dispatch = useDispatch();
   const router = useRouter();
   return (
     <div
@@ -21,8 +24,10 @@ export default function SearchBar({ onSearch, searching }) {
       <IoSearchCircle
         className="w-8 h-8"
         onClick={() => {
+          dispatch(changeSearchText(text));
           router.push("/search");
           onSearch?.(text);
+          setText("");
         }}
       />
     </div>

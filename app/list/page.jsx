@@ -8,11 +8,10 @@ export default function JobsAndOrders() {
   const [currentTab, setCurrentTab] = useState("Jobs");
 
   return (
-    <div className="h-screen overflow-hidden flex flex-col">
+    <div className="w-full max-w-4xl mx-auto h-screen overflow-hidden flex flex-col">
       <Header />
-      <div className="w-full max-w-4xl mx-auto overflow-y-auto">
-        <p className="font-bold text-lg mx-4 my-2">Jobs and Orders</p>
-        {/* <JobsAorOrdersTabBar /> */}
+      <p className="font-bold text-lg mx-4 my-2">Jobs and Orders</p>
+      <div className="overflow-y-auto">
         <div className="w-full flex justify-evenly mb-4">
           <HomeTab
             name="Jobs"
@@ -21,6 +20,11 @@ export default function JobsAndOrders() {
           />
           <HomeTab
             name="Orders"
+            currentTab={currentTab}
+            setCurrentTab={setCurrentTab}
+          />
+          <HomeTab
+            name="WishList"
             currentTab={currentTab}
             setCurrentTab={setCurrentTab}
           />

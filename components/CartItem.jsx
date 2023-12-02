@@ -5,8 +5,8 @@ import { GrFavorite } from "react-icons/gr";
 
 export default function CartItem({ item }) {
   return (
-    <div className="flex flex-col w-60">
-      <div className="w-60 h-44 relative">
+    <div className="flex flex-col w-[48%] md:w-[32%]">
+      <div className="w-full h-44 relative">
         <Image
           src={item.url}
           alt={`${item.name}_img`}

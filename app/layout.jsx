@@ -15,7 +15,12 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={montserrat.className}>
+      <body
+        className={`${montserrat.className} h-screen w-screen flex flex-col overflow-hidden`}
+      >
+        {/* <Header /> */}
+        {/* <p className="overflow-auto">
+        </p> */}
         <Providers>{children}</Providers>
       </body>
     </html>

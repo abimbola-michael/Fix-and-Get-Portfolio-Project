@@ -4,6 +4,7 @@ import LoginButton from "@/components/LoginButton";
 import LoginInput from "@/components/LoginInput";
 import { auth } from "@/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
@@ -38,9 +39,12 @@ export default function Login() {
       <Header />
       <div className="flex my-4 h-full items-center justify-center">
         <div className="w-[50%] hidden md:block">
-          <img
+          <Image
             className="object-cover w-full h-full rounded-r-lg"
             src="/images/mechanic.jpg"
+            alt="mechanic_imag"
+            width={500}
+            height={500}
           />
         </div>
         <div className="w-full md:w-[50%] flex flex-col items-center justify-center text-center px-[15%] md:px-[10%]">
@@ -62,7 +66,7 @@ export default function Login() {
           <LoginButton text={"Login"} onClick={loginAccount} />
           <LoginButton outline={true} text={"Log in with Google"} />
           <div className="mt-3 flex items-center justify-center gap-2 text-sm text-gray-500">
-            Don't have an account?
+            Don&rsquo;t have an account?
             <Link
               href={"/signup"}
               className="text-gray-600 underline underline-offset-4"

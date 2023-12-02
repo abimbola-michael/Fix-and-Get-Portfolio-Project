@@ -8,6 +8,7 @@ import {
   sendEmailVerification,
 } from "firebase/auth";
 import { collection, doc, setDoc } from "firebase/firestore";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
@@ -60,9 +61,12 @@ export default function Signup() {
       <Header />
       <div className="flex grow my-4 h-full items-center justify-center">
         <div className="w-[50%] hidden md:block">
-          <img
+          <Image
             className="object-cover w-full h-full rounded-r-lg"
             src="/images/laptop.jpg"
+            alt="laptop"
+            width={500}
+            height={500}
           />
         </div>
         <div className="w-full md:w-[50%] flex flex-col items-center justify-center text-center px-[15%] md:px-[10%]">

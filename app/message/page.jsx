@@ -6,12 +6,12 @@ import React from "react";
 
 export default function Message() {
   return (
-    <div className="h-screen overflow-hidden">
+    <div className="w-full max-w-4xl mx-auto h-screen overflow-hidden">
       <Header />
-      <div className="max-w-4xl mx-auto flex flex-col">
-        <p className="font-bold text-lg mx-4 my-2">Messages</p>
+      <p className="font-bold text-lg mx-4 my-2">Messages</p>
 
-        <div className="h-[80vh] w-full flex">
+      <div className="flex flex-col">
+        <div className="h-[85vh] w-full flex">
           <div className="h-full shrink-0 md:w-[40%]">
             <MessageList />
           </div>

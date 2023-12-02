@@ -17,11 +17,11 @@ export default function Cart() {
     };
   });
   return (
-    <div className="h-screen overflow-hidden flex flex-col">
+    <div className="w-full max-w-4xl mx-auto h-screen overflow-hidden flex flex-col">
       <Header />
-      <div className="w-full max-w-4xl mx-auto overflow-y-auto">
-        <p className="font-bold text-lg mx-4 my-2">Cart</p>
-        <ul className="flex gap-3 flex-wrap justify-center mx-2">
+      <p className="font-bold text-lg mx-4 my-2">Cart</p>
+      <div className=" overflow-y-auto">
+        <ul className="flex gap-3 flex-wrap mx-2">
           {items.map((item) => (
             <CartItem key={item.id} item={item} />
           ))}

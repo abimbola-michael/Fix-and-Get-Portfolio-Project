@@ -13,10 +13,10 @@ export default function Notification() {
     };
   });
   return (
-    <div className="h-screen overflow-hidden flex flex-col">
+    <div className="max-w-4xl w-full mx-auto h-screen overflow-hidden flex flex-col">
       <Header />
-      <div className="max-w-4xl w-full mx-auto overflow-y-auto">
-        <p className="font-bold text-lg mx-4 my-2">Notifications</p>
+      <p className="font-bold text-lg mx-4 my-2">Notifications</p>
+      <div className="overflow-y-auto">
         <ul className="flex flex-col w-full h-full">
           {notifications.map((notification) => (
             <NotificationItem
