@@ -1,8 +1,13 @@
 "use client";
 import AppButton from "@/components/AppButton";
 import Header from "@/components/Header";
+import PostInputItem from "@/components/PostInputItem";
+import PostItemsList from "@/components/PostItemsList";
+import { addPost } from "@/firebase/firebase_api";
 import { fixCategories, getCategories } from "@/utils/categories";
+import { convertToCommaString } from "@/utils/helpers";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import { FiTrash } from "react-icons/fi";
 import { MdAddCircleOutline } from "react-icons/md";
@@ -15,14 +20,45 @@ export default function AddPost() {
   const [type, setType] = useState("");
   const [currentCategory, setCurrentCategory] = useState("");
   const [currentSubCategory, setCurrentSubCategory] = useState("");
+  const [caption, setCaption] = useState("");
+  // const [name, setName] = useState("");
+  // const [desc, setDesc] = useState("");
+  // const [price, setPrice] = useState("");
+  // const [discPrice, setDiscPrice] = useState("");
+  // const [negotiable, setNegotiable] = useState("");
+  const [items, setItems] = useState([
+    {
+      name: "",
+      desc: "",
+      price: "",
+      discPrice: "",
+      negotiable: "",
+      files: "",
+      mediaTypes: "",
+    },
+  ]);
+  const name = convertToCommaString(items, (item) => item.name);
+  const desc = convertToCommaString(items, (item) => item.desc);
+  const price = convertToCommaString(items, (item) => item.price);
+  const discPrice = convertToCommaString(items, (item) => item.discPrice);
+  const files = convertToCommaString(items, (item) => item.files);
+  const mediaTypes = convertToCommaString(items, (item) => item.mediaTypes);
+  const negotiable = convertToCommaString(items, (item) => item.negotiable);
+  const router = useRouter();
 
-  const post = {
-    id: "0",
-    type: type,
-    category: "Electronics",
-  };
   const categories = type === "fix" ? fixCategories : getCategories;
-
+  const post = {
+    type,
+    category: currentSubCategory,
+    url: "",
+    mediaType: "",
+    name,
+    desc,
+    price,
+    caption,
+    discPrice,
+    negotiable,
+  };
   return (
     <div className="h-screen w-full max-w-4xl mx-auto overflow-hidden flex flex-col relative">
       <Header />
@@ -96,54 +132,26 @@ export default function AddPost() {
           )}
         </div>
         <h1 className="font-bold text-lg py-2">Photos/Videos</h1>
-        <ul className="flex gap-3 mb-2 overflow-y-auto">
-          {images.map((image) => (
-            <li key={image.id} className="flex flex-col w-64">
-              <div className="w-64 h-56 relative">
-                <Image
-                  src={image.url}
-                  alt={`${image.id}_img`}
-                  width={250}
-                  height={200}
-                  className="w-full h-full object-cover rounded-lg"
-                />
-
-                <div className="flex gap-3 absolute top-3 right-3 rounded-full bg-gray-900/10 text-white p-2 text-lg font-bold">
-                  <MdAddCircleOutline />
-                  <MdOutlineEdit />
-                  <FiTrash />
-                </div>
-              </div>
-              <div className="flex row justify-between items-start">
-                <div className="grow flex flex-col">
-                  <input
-                    className="font-bold text-md outline-none border-b-2 focus:border-blue-500 px-2 py-1"
-                    placeholder="Name"
-                  />
-                  <input
-                    className="text-sm outline-none border-b-2 focus:border-blue-500 px-2 py-1"
-                    placeholder="Description"
-                  />
-                </div>
-                <input
-                  className="shrink-0 text-blue-500 font-bold text-lg outline-none border-b-2 focus:border-blue-500 px-2 py-1"
-                  placeholder="Price"
-                />
-              </div>
-            </li>
-          ))}
-        </ul>
-        <AppButton outline={true}>Add</AppButton>
+        <PostItemsList items={items} setItems={setItems} />
         <h1 className="font-bold text-lg py-2">Caption</h1>
         <textarea
           rows={4}
           className="w-full rounded-lg border-2 outline-none focus:border-blue-500 px-3 py-2 wy-2 mb-8 mr-2"
           type="text"
           placeholder="Write something..."
+          value={caption}
+          onChange={(e) => setCaption(e.target.value)}
         />
       </div>
       <div className="absolute bottom-4 right-4">
-        <AppButton>Post</AppButton>
+        <AppButton
+          onClick={() => {
+            addPost(post, files, mediaTypes);
+            router.back();
+          }}
+        >
+          Post
+        </AppButton>
       </div>
     </div>
   );
