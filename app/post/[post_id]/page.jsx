@@ -1,12 +1,14 @@
+"use client";
 import AppButton from "@/components/AppButton";
 import Carousel from "@/components/Carousel";
 import CartItem from "@/components/CartItem";
 import CommentItem from "@/components/CommentItem";
 import Header from "@/components/Header";
 import RatingBar from "@/components/RatingBar";
+import { readPost, readUser } from "@/firebase/firebase_api";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { AiOutlineLike } from "react-icons/ai";
 import { BsCartPlus } from "react-icons/bs";
 import { MdOutlineSaveAlt } from "react-icons/md";
@@ -15,6 +17,8 @@ export default function PostPage() {
   const { post_id } = useSearchParams();
   const [post, setPost] = useState({});
   const [user, setUser] = useState({});
+  const items = post.items || [];
+  const item = items[0] || {};
 
   useEffect(() => {
     async function getUser() {
@@ -30,6 +34,8 @@ export default function PostPage() {
     getPost();
   }, [post_id]);
 
+  if (!post) return <div>No post</div>;
+
   return (
     <div className="h-screen w-full max-w-4xl mx-auto overflow-hidden flex flex-col relative">
       <Header />
@@ -37,11 +43,11 @@ export default function PostPage() {
       <div className="w-full h-full overflow-y-auto overflow-x-hidden mx-4">
         <div className="flex flex-col w-full h-[90%] gap-3">
           <Carousel
-            urls={urls}
+            urls={[item.url]}
             autoSlide={true}
             slideDuration={10000}
             indicators="images"
-            callback={setCurrentIndex}
+            // callback={setCurrentIndex}
           />
         </div>
         <div className="flex flex-col">
@@ -61,21 +67,23 @@ export default function PostPage() {
           <RatingBar size={30} showRating={false} />
         </div>
         <div className="flex justify-between items-center px-4 py-2">
-          <div className="flex gap-2 items-center">
-            <Image
-              src={"/images/mechanic.jpg"}
-              alt={`_img`}
-              width={50}
-              height={50}
-              className="rounded-full cover aspect-square"
-            />
-            <div className="flex flex-col">
-              <p className="text-md font-bold">Michaels Stores</p>
-              <p className="text-sm text-gray-700 line-clamp-1">
-                Abimbola Michael
-              </p>
+          {user && (
+            <div className="flex gap-2 items-center">
+              <Image
+                src={"/images/mechanic.jpg"}
+                alt={`_img`}
+                width={50}
+                height={50}
+                className="rounded-full cover aspect-square"
+              />
+              <div className="flex flex-col">
+                <p className="text-md font-bold">Michaels Stores</p>
+                <p className="text-sm text-gray-700 line-clamp-1">
+                  Abimbola Michael
+                </p>
+              </div>
             </div>
-          </div>
+          )}
           <div className="flex gap-2">
             <AppButton outline={true}>Message</AppButton>
             <AppButton outline={true}>Phone Call</AppButton>
@@ -94,11 +102,11 @@ export default function PostPage() {
         </div>
         <div className="w-full my-4  space-y-3">
           <h1 className="font-bold text-lg">Comments</h1>
-          <ul className="overflow-y-auto">
+          {/* <ul className="overflow-y-auto">
             {users.map((user) => (
               <CommentItem key={user.id} user={user} comment={comment} />
             ))}
-          </ul>
+          </ul> */}
           <div className="flex gap-2 items-center mx-3 my-4">
             <Image
               src={"/images/mechanic.jpg"}
