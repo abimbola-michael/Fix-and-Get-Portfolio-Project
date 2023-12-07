@@ -17,12 +17,13 @@ export default function PostPage() {
   const { post_id } = useSearchParams();
   const [post, setPost] = useState({});
   const [user, setUser] = useState({});
-  const items = post.items || [];
+  const items = post?.items || [];
   const item = items[0] || {};
 
   useEffect(() => {
     async function getUser() {
-      const result = await readUser(result.userId);
+      if (!post) return;
+      const result = await readUser(post.userId);
       setUser(result);
     }
     async function getPost() {
