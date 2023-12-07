@@ -119,7 +119,9 @@ export async function getValue(path) {
     const docSnapshot = await getDoc(doc(db, path.join("/")));
     console.log(`Document data: ${docSnapshot.data()}`);
     return docSnapshot.data();
-  } catch (e) {}
+  } catch (e) {
+    return {};
+  }
 }
 export function getRealtimeValue(path, callback) {
   try {
@@ -134,7 +136,9 @@ export async function getValues(path) {
   try {
     const querySnapshot = await getDocs(collection(db, path.join("/")));
     return querySnapshot.docs.map((doc) => doc.data());
-  } catch (e) {}
+  } catch (e) {
+    return [];
+  }
 }
 export function getRealtimeValues(path, callback) {
   try {
@@ -177,7 +181,9 @@ export async function getValuesWithCond(
       )
     );
     return querySnapshot.docs.map((doc) => doc.data());
-  } catch (e) {}
+  } catch (e) {
+    return;
+  }
 }
 
 export async function uploadFile(path, file) {

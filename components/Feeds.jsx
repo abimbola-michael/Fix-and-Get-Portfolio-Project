@@ -10,7 +10,7 @@ export default function Feeds() {
     //const unSub = readRealtimePosts(setPosts);
     async function getPosts() {
       const result = await readPosts();
-      console.log(`results: ${result}`);
+      //console.log(`results: ${result}`);
       setPosts(result);
     }
     getPosts();
