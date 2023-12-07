@@ -12,7 +12,7 @@ import { useEffect, useState } from "react";
 
 export default function Home() {
   const router = useRouter();
-  const [users, setUsers] = useState([]);
+  // const [users, setUsers] = useState([]);
   // useEffect(
   //   () =>
   //     onAuthStateChanged(auth, (user) => {
@@ -24,15 +24,14 @@ export default function Home() {
   //     }),
   //   []
   // );
-  useEffect(
-    () =>
-      onSnapshot(collection(db, "users"), (snapshot) => {
-        const result = snapshot.docs.map((doc) => doc.data());
-        console.log(result);
-        setUsers(result);
-      }),
-    []
-  );
+  // useEffect(
+  //   () =>
+  //     onSnapshot(collection(db, "users"), (snapshot) => {
+  //       const result = snapshot.docs.map((doc) => doc.data());
+  //       setUsers(result);
+  //     }),
+  //   []
+  // );
   return (
     <main className="w-full max-w-4xl mx-auto h-screen overflow-hidden flex flex-col">
       <Header />
