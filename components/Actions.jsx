@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import LoginButton from "./LoginButton";
 import SignupButton from "./SignupButton";
 import { LuHome } from "react-icons/lu";
@@ -13,16 +13,35 @@ import { LuList } from "react-icons/lu";
 
 import SearchBar from "./SearchBar";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import PopupMenu from "./PopupMenu";
+import { logout } from "@/firebase";
 
 export default function Actions() {
   const pathname = usePathname();
   const [searching, setSearching] = useState(false);
+  const [hover, setHover] = useState(false);
+  const hoverTimeout = useRef(null);
 
+  const handleMouseEnter = () => {
+    clearTimeout(hoverTimeout.current);
+    hoverTimeout.current = setTimeout(() => {
+      setHover(true);
+    }, 100);
+  };
+
+  const handleMouseLeave = () => {
+    clearTimeout(hoverTimeout.current);
+    hoverTimeout.current = setTimeout(() => {
+      setHover(false);
+    }, 100);
+  };
+
+  useEffect(() => {
+    return () => clearTimeout(hoverTimeout.current);
+  }, []);
   return (
     <div className="flex gap-5 items-center text-2xl">
-      {/* <LoginButton />
-      <SignupButton /> */}
       {searching ? (
         <SearchBar
           searching={searching}
@@ -64,19 +83,38 @@ export default function Actions() {
                 } hover:text-blue-500 `}
               />
             </Link>
-            <Link href={"/cart"}>
+            {/* <Link href={"/cart"}>
               <FiShoppingCart
                 className={`${
                   pathname === "/cart" ? "text-blue-500" : ""
                 } hover:text-blue-500 `}
               />
-            </Link>
-            <Link href={"/profile"}>
+            </Link> */}
+            <Link
+              href={"/profile"}
+              className="relative group"
+              onMouseEnter={handleMouseEnter}
+            >
               <CgProfile
                 className={`${
                   pathname === "/profile" ? "text-blue-500" : ""
                 } hover:text-blue-500 `}
               />
+              {hover && (
+                <PopupMenu
+                  onMouseLeave={handleMouseLeave}
+                  items={[
+                    { name: "Settings", action: () => {} },
+                    {
+                      name: "Logout",
+                      action: () => {
+                        setHover(false);
+                        logout();
+                      },
+                    },
+                  ]}
+                />
+              )}
             </Link>
           </>
         )

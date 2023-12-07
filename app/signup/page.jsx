@@ -2,7 +2,7 @@
 import Header from "@/components/Header";
 import LoginButton from "@/components/LoginButton";
 import LoginInput from "@/components/LoginInput";
-import { auth, db } from "@/firebase";
+import { auth, db, setValue } from "@/firebase";
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
@@ -26,26 +26,37 @@ export default function Signup() {
     setPhone("");
     setPassword("");
   }
+  const user = {
+    name,
+    email,
+    phone,
+    profilePhoto: "",
+    coverPhoto: "",
+    timeJoined: Date.now(),
+    lastSeen: Date.now(),
+  };
+  const companyDetails = {
+    companyName: "",
+    companyAddress: "",
+    companyLogo: "",
+    companyDescription: "",
+    companyWebsite: "",
+    companyEmail: "",
+    companyPhone: "",
+    currentlocation: "",
+  };
   async function createAccount() {
     if (password === "" || email === "") return;
     createUserWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
         const user = userCredential.user;
         try {
-          setDoc(doc(db, "users", user.uid), {
-            name,
-            email,
-            phone,
-          });
+          setValue(["users", user.uid], user);
         } catch (e) {
           console.error(e);
         }
         sendEmailVerification(user);
         router.push("/");
-        // const attendingQuery = query(
-        //   collection(db, 'attendees'),
-        //   where('attending', '==', true)
-        // );
       })
       .catch((error) => {
         const errorCode = error.code;

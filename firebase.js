@@ -27,7 +27,14 @@ import {
   uploadBytes,
   uploadBytesResumable,
 } from "firebase/storage";
-import { getAuth } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  getAuth,
+  signOut,
+  updateEmail,
+  updatePassword,
+  updateProfile,
+} from "firebase/auth";
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -51,32 +58,66 @@ export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const auth = getAuth();
 
-// function pathToString(path) {
-//   return path.join("/");
+export async function createAccount(email, password) {
+  return createUserWithEmailAndPassword(auth, email, password);
+}
+export async function login(email, password) {
+  return signInWithEmailAndPassword(auth, email, password);
+}
+export async function logout() {
+  return signOut(auth);
+}
+export async function sendPasswordResetEmail(email) {
+  return sendPasswordResetEmail(auth, email);
+}
+export async function changeEmail(newEmail) {
+  return updateEmail(auth.currentUser, newEmail);
+}
+export async function changePassword(newPassword) {
+  return updatePassword(auth.currentUser, newPassword);
+}
+export async function changeProfile(profile) {
+  return updateProfile(auth.currentUser, profile);
+}
+// export async function hasFirebaseEmail(email) {
+//   return
 // }
+export async function isEmailExist(email) {
+  const querySnapshot = await getDocs(
+    query(collection(db, "users"), where("email", "==", email))
+  );
+  return querySnapshot.docs.length > 0;
+}
+export async function verifyEmail() {
+  return sendEmailVerification(auth.currentUser);
+}
+export async function isEmailVerified() {
+  return auth.currentUser.emailVerified;
+}
 export function getId(path) {
   return doc(collection(db, path.join("/"))).id;
 }
-export async function addValue(value, ...path) {
+export async function addValue(path, value) {
   try {
-    const docRef = await addDoc(collection(db, path.join("/")), value);
+    return addDoc(collection(db, path.join("/")), value);
   } catch (e) {}
 }
 export async function setValue(path, value) {
   try {
-    const docRef = await setDoc(doc(db, path.join("/")), value);
+    return setDoc(doc(db, path.join("/")), value);
   } catch (e) {}
 }
 
 export async function removeValue(path, value) {
   try {
-    const docRef = await deleteDoc(doc(db, path.join("/")), value);
+    return deleteDoc(doc(db, path.join("/")), value);
   } catch (e) {}
 }
 
 export async function getValue(path) {
   try {
     const docSnapshot = await getDoc(doc(db, path.join("/")));
+    console.log(`Document data: ${docSnapshot.data()}`);
     return docSnapshot.data();
   } catch (e) {}
 }

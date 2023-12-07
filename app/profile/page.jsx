@@ -66,29 +66,18 @@ export default function Profile() {
             </div>
           </div>
 
-          <div className="mt-[40px] mx-2 flex flex-col items-center">
+          <div className="mt-[40px] my-3 mx-2 flex flex-col items-center">
             <h1 className="font-bold text-2xl">Fixit Enterprise</h1>
             <h2 className="font-semibold">Abimbola Michael</h2>
-            <p className="text-ellipsis overflow-hidden">
+            <p className="text-center">
               Fixit Enterprise is a company that assist in fixing of cars and
               other forms of electronics like Refridgerators, Fans, Generators
               etc
             </p>
           </div>
         </div>
-        <div className="w-full flex justify-evenly">
-          <HomeTab
-            name="Fix"
-            currentTab={currentTab}
-            setCurrentTab={setCurrentTab}
-          />
-          <HomeTab
-            name="Get"
-            currentTab={currentTab}
-            setCurrentTab={setCurrentTab}
-          />
-        </div>
-        <ul className="my-3 mx-2 flex gap-2 overflow-x-auto">
+
+        <ul className="my-2 mx-2 flex gap-2 overflow-x-auto">
           {categories.map((category) => (
             <li key={category.name}>
               <AppButton
@@ -108,6 +97,18 @@ export default function Profile() {
             </AppButton>
           </li>
         </ul>
+        <div className="w-full flex justify-evenly mb-3">
+          <HomeTab
+            name="Fix"
+            currentTab={currentTab}
+            setCurrentTab={setCurrentTab}
+          />
+          <HomeTab
+            name="Get"
+            currentTab={currentTab}
+            setCurrentTab={setCurrentTab}
+          />
+        </div>
         {currentCategory && (
           <ul className="flex flex-col gap-2 overflow-x-auto px-2 text-black">
             {categories[
@@ -120,7 +121,15 @@ export default function Profile() {
                 <ul className="flex flex-col gap-1 text-sm text-gray-700">
                   {category.items.map((item) => (
                     <li key={item} className="flex flex-col gap-2 my-2">
-                      <h1 className="text-lg font-semibold">{item}</h1>
+                      <div className="w-full flex justify-between items-center">
+                        <h1 className="text-lg font-semibold">{item}</h1>
+                        <button
+                          className="shrink-0 text-blue-500 text-md mr-3"
+                          onClick={() => {}}
+                        >
+                          View All
+                        </button>
+                      </div>
                       <ul className="flex gap-3 overflow-x-auto">
                         {items.map((item) => (
                           <FixGetItem key={item.id} item={item} />
