@@ -1,55 +1,59 @@
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import React from "react";
-import AppButton from "./AppButton";
-import { GrFavorite } from "react-icons/gr";
+import { readUser } from "@/firebase/firebase_api";
+import StoreItem from "./FixGetItem";
 
 export default function PostItem({
-  post: { name, desc, price, discPrice, negotiable, url, mediaType },
+  post: {
+    id,
+    userId,
+    postType,
+    type,
+    category,
+    subCategory,
+    title,
+    caption,
+    items,
+  },
 }) {
-  function viewPost() {}
+  const [user, setUser] = useState({});
+  useEffect(() => {
+    async function getUser() {
+      const result = await readUser(userId);
+      setUser(result);
+    }
+    getUser();
+  }, [userId]);
   return (
-    <li className="flex flex-col w-[300px] gap-2">
-      <div className="w-full h-[250px] relative">
+    <div className="w-full flex flex-col">
+      {user && (
         <div
-          className="w-full h-full bg-cover bg-center"
-          style={{ backgroundImage: "url(/images/img_placeholder.png)" }}
-          onClick={viewPost}
+          key={user.id}
+          className="flex gap-2 px-4 py-2 items-center"
+          onClick={() => {}}
         >
           <Image
-            src={url}
-            alt={`${name} ${mediaType}`}
-            width={250}
-            height={200}
-            className="w-full h-full object-cover rounded-lg"
+            src={"/images/mechanic.jpg"}
+            alt={`${user.name} Image`}
+            width={50}
+            height={50}
+            className="rounded-full aspect-square cover shrink-0"
           />
+          <div className="grow flex flex-col">
+            <div className="flex justify-between items-center">
+              <p className="text-md">{user.name}</p>
+              <p className="text-[12px] text-gray-500">1:02pm</p>
+            </div>
+            <h1 className="font-bold text-lg">{title}</h1>
+          </div>
         </div>
-
-        <div className="flex gap-5 absolute bottom-3 right-3 rounded-full bg-gray-900/10 text-white p-2 text-2xl font-bold">
-          <GrFavorite />
-        </div>
-      </div>
-      <div className="flex flex-col w-full">
-        <h2 className="w-full font-bold text-md px-2">{name}</h2>
-        <p className="w-full text-sm px-2">{desc}</p>
-
-        <div className="flex gap-2 px-2 items-center">
-          <p className="text-md py-1 font-bold">
-            NGN {discPrice ? discPrice : price}
-          </p>
-
-          {discPrice && (
-            <p className="text-sm py-1 font-bold line-through text-gray-500">
-              NGN {price}
-            </p>
-          )}
-
-          {negotiable && (
-            <AppButton outline={true} small={true}>
-              Negotiable
-            </AppButton>
-          )}
-        </div>
-      </div>
-    </li>
+      )}
+      <p className="text-sm">{caption}</p>
+      <ul className="w-full flex gap-3">
+        {items.map((item) => (
+          <StoreItem post={item} key={item.url} />
+        ))}
+      </ul>
+    </div>
   );
 }

@@ -6,6 +6,16 @@ interface Item {
   negotiable: string;
   files: string;
 }
+
+export function convertFileToPath(file: File) {
+  return URL.createObjectURL(file);
+}
+export function listToStrings(strings: Array<string>) {
+  return strings.join(",");
+}
+export function stringsToList(string: string) {
+  return string.split(",");
+}
 export function convertToCommaString(items: Array<any>, callback) {
   return items.map((item) => callback(item)).join(",");
 }

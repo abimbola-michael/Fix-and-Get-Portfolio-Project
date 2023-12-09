@@ -18,20 +18,28 @@ export default function AddPost() {
   const [currentCategory, setCurrentCategory] = useState("");
   const [currentSubCategory, setCurrentSubCategory] = useState("");
   const [title, setTitle] = useState("");
-  const [caption, setCaption] = useState("");
   const [currency, setCurrency] = useState("NGN");
-  const [items, setItems] = useState([]);
-  const router = useRouter();
+  const [files, setFiles] = useState([]);
+  const [name, setName] = useState("");
+  const [desc, setDesc] = useState("");
+  const [price, setPrice] = useState(0);
+  const [discPrice, setDiscPrice] = useState(0);
+  const [negotiable, setNegotiable] = useState(false);
 
-  // const name = convertToCommaString(items, (item) => item.name);
+  const router = useRouter();
   const categories = type === "fix" ? fixCategories : getCategories;
-  const post = {
+  const item = {
     type,
-    category: currentCategory,
+    category: currentSubCategory,
     subCategory: currentSubCategory,
-    title,
-    caption,
-    items,
+    title: title,
+    name,
+    desc,
+    price,
+    discPrice,
+    negotiable,
+    files,
+    currency,
   };
   const fileInputRef = useRef(null);
   const handleButtonClick = () => {
@@ -40,27 +48,16 @@ export default function AddPost() {
   };
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
+    setFiles((files) => [...files, selectedFile]);
 
-    setItems((items) => [
-      ...items,
-      {
-        name: "",
-        desc: "",
-        price: "",
-        discPrice: "",
-        negotiable: false,
-        files: [selectedFile],
-        // mediaTypes: mediaType,
-        currency,
-      },
-    ]);
     // if (selectedFile) {
     //   const reader = new FileReader();
 
     //   reader.onloadend = () => {
-    //     const mediaType = selectedFile.type.startsWith("image/")
-    //       ? "image"
-    //       : "video";
+
+    //     // const mediaType = selectedFile.type.startsWith("image/")
+    //     //   ? "image"
+    //     //   : "video";
     //     setItems((items) => [
     //       ...items,
     //       {

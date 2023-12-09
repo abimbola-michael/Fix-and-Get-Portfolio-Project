@@ -74,7 +74,7 @@ export default function MainPageDisplay() {
           </li>
         ))}
       </ul> */}
-      <div className="w-full h-[60vh]">
+      <div className="w-full h-[400px]">
         {currentCategory ? (
           <div className="w-full h-full flex flex-col">
             <div className="w-full flex justify-evenly mb-4">

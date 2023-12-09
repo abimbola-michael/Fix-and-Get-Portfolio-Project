@@ -14,32 +14,13 @@ import { LuList } from "react-icons/lu";
 import SearchBar from "./SearchBar";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import PopupMenu from "./PopupMenu";
 import { logout } from "@/firebase";
+import PopupMenuButton from "./PopupMenuButton";
 
 export default function Actions() {
   const pathname = usePathname();
   const [searching, setSearching] = useState(false);
-  const [hover, setHover] = useState(false);
-  const hoverTimeout = useRef(null);
 
-  const handleMouseEnter = () => {
-    clearTimeout(hoverTimeout.current);
-    hoverTimeout.current = setTimeout(() => {
-      setHover(true);
-    }, 100);
-  };
-
-  const handleMouseLeave = () => {
-    clearTimeout(hoverTimeout.current);
-    hoverTimeout.current = setTimeout(() => {
-      setHover(false);
-    }, 100);
-  };
-
-  useEffect(() => {
-    return () => clearTimeout(hoverTimeout.current);
-  }, []);
   return (
     <div className="flex gap-5 items-center text-2xl">
       {searching ? (
@@ -92,10 +73,27 @@ export default function Actions() {
             </Link> */}
             <Link
               href={"/profile"}
-              className="relative group"
-              onMouseEnter={handleMouseEnter}
+              // onMouseEnter={handleMouseEnter}
             >
-              <CgProfile
+              <PopupMenuButton
+                items={[
+                  { name: "Settings", action: () => {} },
+                  {
+                    name: "Logout",
+                    action: () => {
+                      setHover(false);
+                      logout();
+                    },
+                  },
+                ]}
+              >
+                <CgProfile
+                  className={`${
+                    pathname === "/profile" ? "text-blue-500" : ""
+                  } hover:text-blue-500 `}
+                />
+              </PopupMenuButton>
+              {/* <CgProfile
                 className={`${
                   pathname === "/profile" ? "text-blue-500" : ""
                 } hover:text-blue-500 `}
@@ -114,7 +112,7 @@ export default function Actions() {
                     },
                   ]}
                 />
-              )}
+              )} */}
             </Link>
           </>
         )

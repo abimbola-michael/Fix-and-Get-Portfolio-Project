@@ -6,7 +6,7 @@ export default function HomeTab({
   setCurrentTab,
   hoverSelect = false,
 }) {
-  const selected = name === currentTab;
+  const selected = name.toLowerCase() === currentTab.toLowerCase();
   return (
     <div
       className={`w-full text-lg text-center px-3 py-2 ${
