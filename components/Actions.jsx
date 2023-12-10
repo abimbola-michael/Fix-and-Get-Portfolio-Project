@@ -16,10 +16,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logout } from "@/firebase";
 import PopupMenuButton from "./PopupMenuButton";
+import { getUId } from "@/firebase/firebase_api";
 
 export default function Actions() {
   const pathname = usePathname();
   const [searching, setSearching] = useState(false);
+  const userId = getUId();
 
   return (
     <div className="flex gap-5 items-center text-2xl">
@@ -72,7 +74,7 @@ export default function Actions() {
               />
             </Link> */}
             <Link
-              href={"/profile"}
+              href={`/profile/${userId}`}
               // onMouseEnter={handleMouseEnter}
             >
               <PopupMenuButton
@@ -89,7 +91,7 @@ export default function Actions() {
               >
                 <CgProfile
                   className={`${
-                    pathname === "/profile" ? "text-blue-500" : ""
+                    pathname === `/profile/${userId}` ? "text-blue-500" : ""
                   } hover:text-blue-500 `}
                 />
               </PopupMenuButton>

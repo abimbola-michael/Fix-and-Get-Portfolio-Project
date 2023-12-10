@@ -24,9 +24,10 @@ export function convertToDate(date: string) {
 }
 export function convertMilisecToTime(milisec: number) {
   const date = new Date(milisec);
-  const hours = date.getHours();
+  const hours = date.getHours() % 12 || 12; // Convert to 12-hour format
   const minutes = date.getMinutes();
-  return `${hours}:${minutes}`;
+  const ampm = date.getHours() < 12 ? "AM" : "PM";
+  return `${hours}:${minutes} ${ampm}`;
 }
 
 export async function getFile(path: string) {
@@ -46,4 +47,48 @@ export async function getFileBlob(path: string) {
 export async function convertBlobToFile(blob: Blob, fileName: string) {
   const file = new File([blob], fileName, { type: blob.type });
   return file;
+}
+export function getUserCategories(
+  items: Array<{
+    id: string;
+    type: string;
+    category: string;
+    subCategory: string;
+    title: string;
+    name: string;
+    desc: string;
+    price: string;
+    discPrice: string;
+    negotiable: boolean;
+    url: string;
+    mediaType: string;
+    fileName: string;
+    time: string;
+    available: boolean;
+  }>
+) {
+  let finalCategories = [];
+  const categories = items.reduce((prev, item) => {
+    const index = prev.find((catItem) => catItem.name === item.category);
+    return index
+      ? prev.filter((value, i) =>
+          i === index ? { ...value, items: [...value.items, item] } : value
+        )
+      : [...prev, { name: item.category, items: [item] }];
+  }, []);
+  categories.forEach((category) => {
+    const subCategories = category.items.reduce((prev, item) => {
+      const index = prev.find((catItem) => catItem.name === item.subCategory);
+      return index
+        ? prev.filter((value, i) =>
+            i === index
+              ? { ...value, items: [...value.items, item.title] }
+              : value
+          )
+        : [...prev, { name: item.subCategory, items: [item.title] }];
+    }, []);
+    finalCategories.push({ name: category.name, subcategories: subCategories });
+  });
+
+  return finalCategories;
 }

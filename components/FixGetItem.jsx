@@ -13,7 +13,7 @@ export default function FixGetItem({
     url,
     mediaType,
     currency,
-    available,
+    available = true,
   },
 }) {
   function viewPost() {}

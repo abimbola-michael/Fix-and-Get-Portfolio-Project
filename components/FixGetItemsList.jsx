@@ -4,6 +4,10 @@ import FixGetInputItem from "./FixGetInputItem";
 
 export default function FixGetItemsList({ items, setItems }) {
   function updateItem(type, value, index) {
+    if (type === "files" && value.length === 0) {
+      setItems((items) => items.filter((item, i) => index !== i));
+      return;
+    }
     setItems((items) =>
       items.map((item, i) => (index === i ? { ...item, [type]: value } : item))
     );
@@ -15,6 +19,7 @@ export default function FixGetItemsList({ items, setItems }) {
           <FixGetInputItem
             key={index}
             item={item}
+            index={index}
             onChange={(type, value) => updateItem(type, value, index)}
           />
         ))}

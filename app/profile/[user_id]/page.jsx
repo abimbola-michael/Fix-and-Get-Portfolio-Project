@@ -4,12 +4,14 @@ import FixGetItem from "@/components/FixGetItem";
 import Header from "@/components/Header";
 import HomeTab from "@/components/HomeTab";
 import PostItem from "@/components/PostItem";
-import ProfileTabBar from "@/components/ProfileTabBar";
+import ProfileStats from "@/components/ProfileStats";
+import { getUser, readUserStats } from "@/firebase/firebase_api";
 import { fixCategories, getCategories } from "@/utils/categories";
+import { getUserCategories } from "@/utils/helpers";
 import App from "next/app";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
 
 export default function Profile() {
   // const [type, setType] = useState("fix");
@@ -17,14 +19,27 @@ export default function Profile() {
   const [currentCategory, setCurrentCategory] = useState("Electronics");
   const [currentSubCategory, setCurrentSubCategory] = useState("Smartphones");
   const [title, setTitle] = useState("");
+  const params = useParams();
+  const [user, setUser] = useState(null);
+  const user_id = params.user_id;
 
   const router = useRouter();
-  const categories =
-    currentTab === "Fix"
-      ? fixCategories
-      : currentTab === "Get"
-      ? getCategories
-      : [];
+  useEffect(() => {
+    async function getUserData() {
+      const user = await readUserStats(user_id);
+      setUser(user);
+    }
+    getUserData();
+  }, [user_id]);
+  // const categories =
+  //   currentTab === "Fix"
+  //     ? fixCategories
+  //     : currentTab === "Get"
+  //     ? getCategories
+  //     : [];
+  const categories = getUserCategories(
+    currentTab === "Fix" ? user?.fix : user?.get
+  );
   const items = Array.from({ length: 10 }, (v, i) => {
     return {
       id: i.toString(),
@@ -58,16 +73,20 @@ export default function Profile() {
         <div className="flex flex-col gap-3 items-center max-w-4xl">
           <div
             className="w-full h-[150px] relative"
-            style={{ backgroundImage: "url(images/laptop.jpg)" }}
+            style={{
+              backgroundImage: `url(${
+                user?.coverPhoto || "/images/laptop.jpg"
+              })`,
+            }}
           >
             <Image
               className="absolute left-[20px] bottom-[-50px] rounded-full shrink-0 aspect-square"
-              src="/images/photo.jpg"
+              src={user?.profilePhoto || "/images/photo.jpg"}
               alt="profile picture"
               width={100}
               height={100}
             />
-            <div className="flex gap-3 absolute bottom-[-50px] left-[130px]">
+            <div className="w-full flex justify-end gap-3 absolute bottom-[-50px] px-3">
               <AppButton outline={true} link={"/editprofile"}>
                 Edit Profile
               </AppButton>
@@ -76,27 +95,54 @@ export default function Profile() {
             </div>
           </div>
 
-          <div className="mt-[40px] m-3 flex flex-col">
+          <div className="mt-[40px] px-3 flex flex-col w-full">
+            <h2 className="font-semibold">{user?.name}</h2>
             <h1 className="font-bold text-2xl">Fixit Enterprise</h1>
-            <h2 className="font-semibold">Abimbola Michael</h2>
             <p className="">
               Fixit Enterprise is a company that assist in fixing of cars and
               other forms of electronics like Refridgerators, Fans, Generators
               etc
             </p>
+            <div className="flex items-center gap-3 w-full">
+              {user?.fix?.length > 0 && (
+                <ProfileStats
+                  title="Fix Items"
+                  count={user?.fix?.length ?? 0}
+                />
+              )}
+              {user?.get?.length > 0 && (
+                <ProfileStats
+                  title="Get Items"
+                  count={user?.get?.length ?? 0}
+                />
+              )}
+              <ProfileStats title="Posts" count={user?.posts?.length ?? 0} />
+              <ProfileStats
+                title="Followers"
+                count={user?.followers?.length ?? 0}
+              />
+              <ProfileStats
+                title="Following"
+                count={user?.following?.length ?? 0}
+              />
+            </div>
           </div>
         </div>
         <div className="w-full flex justify-evenly mb-3">
-          <HomeTab
-            name="Fix"
-            currentTab={currentTab}
-            setCurrentTab={setCurrentTab}
-          />
-          <HomeTab
-            name="Get"
-            currentTab={currentTab}
-            setCurrentTab={setCurrentTab}
-          />
+          {user?.fix?.length > 0 && (
+            <HomeTab
+              name="Fix"
+              currentTab={currentTab}
+              setCurrentTab={setCurrentTab}
+            />
+          )}
+          {user?.get?.length > 0 && (
+            <HomeTab
+              name="Get"
+              currentTab={currentTab}
+              setCurrentTab={setCurrentTab}
+            />
+          )}
           <HomeTab
             name="Posts"
             currentTab={currentTab}
@@ -174,20 +220,39 @@ export default function Profile() {
               ))}
             </ul>
           )}
-          {currentTab === "Posts" && (
-            <ul className="flex gap-3 flex-wrap">
-              {items.map((item) => (
+          <div className="w-full min-h-[calc(100vh-150px)]">
+            {currentTab === "Posts" && (
+              <ul className="flex gap-3 flex-wrap">
+                {/* {items.map((item) => (
                 <PostItem key={item.id} item={item} />
-              ))}
-            </ul>
-          )}
-          {(currentTab === "Fix" || currentTab === "Get") && (
+              ))} */}
+                {user?.posts.map((post) => (
+                  <PostItem key={post.id} post={post} isFeed={false} />
+                ))}
+              </ul>
+            )}
+            {currentTab === "Fix" && (
+              <ul className="flex gap-3 flex-wrap">
+                {user?.fix.map((item) => (
+                  <FixGetItem key={item.id} item={item} />
+                ))}
+              </ul>
+            )}
+            {currentTab === "Get" && (
+              <ul className="flex gap-3 flex-wrap">
+                {user?.get.map((item) => (
+                  <FixGetItem key={item.id} item={item} />
+                ))}
+              </ul>
+            )}
+            {/* {(currentTab === "Fix" || currentTab === "Get") && (
             <ul className="flex gap-3 flex-wrap">
               {items.map((item) => (
                 <FixGetItem key={item.id} item={item} />
               ))}
             </ul>
-          )}
+          )} */}
+          </div>
         </div>
         {/* {currentCategory && (
           <ul className="flex flex-col gap-2 overflow-x-auto px-2 text-black">

@@ -4,11 +4,12 @@ import AppInput from "@/components/AppInput";
 import Header from "@/components/Header";
 import { addPost } from "@/firebase/firebase_api";
 import { fixCategories, getCategories } from "@/utils/categories";
-import { convertToCommaString } from "@/utils/helpers";
+import { convertFileToPath, convertToCommaString } from "@/utils/helpers";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import FixGetItemsList from "@/components/FixGetItemsList";
+import { IoMdCloseCircle } from "react-icons/io";
 
 const images = Array.from({ length: 10 }, (v, i) => {
   return { url: "/images/laptop.jpg", type: "image", id: i.toString() };
@@ -19,11 +20,11 @@ export default function AddPost() {
   const [currentSubCategory, setCurrentSubCategory] = useState("");
   const [title, setTitle] = useState("");
   const [caption, setCaption] = useState("");
-  const [currency, setCurrency] = useState("NGN");
-  const [items, setItems] = useState([]);
+  const [files, setFiles] = useState([]);
+  const [paths, setPaths] = useState([]);
+
   const router = useRouter();
 
-  // const name = convertToCommaString(items, (item) => item.name);
   const categories = type === "fix" ? fixCategories : getCategories;
   const post = {
     type,
@@ -31,54 +32,42 @@ export default function AddPost() {
     subCategory: currentSubCategory,
     title,
     caption,
-    items,
+    files,
   };
   const fileInputRef = useRef(null);
+  function removeFile(index) {
+    const newFiles = [...files];
+    const newPaths = [...paths];
+    newFiles.splice(index, 1);
+    newPaths.splice(index, 1);
+    setFiles(newFiles);
+    setPaths(newPaths);
+  }
+  function replaceFile(index, file) {
+    const newFiles = [...files];
+    const newPaths = [...paths];
+    newFiles[index] = file;
+    newPaths[index] = convertFileToPath(file);
+    setFiles(newFiles);
+    setPaths(newPaths);
+  }
   const handleButtonClick = () => {
     // Trigger the file input click event
     fileInputRef.current.click();
   };
   const handleFileChange = (event) => {
-    const selectedFile = event.target.files[0];
+    // const selectedFile = event.target.files[0];
 
-    setItems((items) => [
-      ...items,
-      {
-        name: "",
-        desc: "",
-        price: "",
-        discPrice: "",
-        negotiable: false,
-        files: [selectedFile],
-        // mediaTypes: mediaType,
-        currency,
-      },
-    ]);
-    // if (selectedFile) {
-    //   const reader = new FileReader();
+    const selectedFiles = Array.from(event.target.files);
+    if (selectedFiles.isEmpty) return;
 
-    //   reader.onloadend = () => {
-    //     const mediaType = selectedFile.type.startsWith("image/")
-    //       ? "image"
-    //       : "video";
-    //     setItems((items) => [
-    //       ...items,
-    //       {
-    //         name: "",
-    //         desc: "",
-    //         price: "",
-    //         discPrice: "",
-    //         negotiable: false,
-    //         files: reader.result,
-    //         mediaTypes: mediaType,
-    //         currency,
-    //       },
-    //     ]);
-    //   };
+    const selectedPaths = selectedFiles.map((file) => convertFileToPath(file));
 
-    //   // Read the file as a data URL (base64)
-    //   reader.readAsDataURL(selectedFile);
-    // }
+    const newFiles = [...files, ...selectedFiles];
+    const newPaths = [...paths, ...selectedPaths];
+
+    setFiles(newFiles);
+    setPaths(newPaths);
   };
 
   function getSubCategories() {
@@ -188,7 +177,7 @@ export default function AddPost() {
             </ul>
           )}
         </div>
-        <h1 className="font-bold text-lg py-4">Currency</h1>
+        {/* <h1 className="font-bold text-lg py-4">Currency</h1>
         <select
           className={`focus:outline-none text-md px-4 py-2 bg-transparent rounded-full text-blue-500 font-bold border-2 border-blue-500 whitespace-nowrap`}
           value={currency}
@@ -197,11 +186,35 @@ export default function AddPost() {
           <option value="NGN">NGN</option>
           <option value="USD">USD</option>
           <option value="EUR">EUR</option>
-        </select>
+        </select> */}
 
         <h1 className="font-bold text-lg py-4">Photos/Videos</h1>
         <div className="w-full flex flex-col items-start gap-4">
-          <FixGetItemsList items={items} setItems={setItems} />
+          <div className="w-full overflow-x-auto">
+            <ul className="flex gap-2">
+              {paths.map((path, index) => (
+                <li key={path} className="">
+                  <div
+                    key={path}
+                    className={`relative p-1 h-[250px] w-[300px]`}
+                  >
+                    <Image
+                      src={path}
+                      alt={`${index + 1} Image`}
+                      width={250}
+                      height={200}
+                      className="w-full h-full object-cover rounded-lg"
+                      onClick={handleButtonClick}
+                    />
+                    <IoMdCloseCircle
+                      className="absolute top-3 right-3 text-gray-100 text-xl"
+                      onClick={() => removeFile(index)}
+                    />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
           <AppButton outline={true} onClick={handleButtonClick}>
             Add
           </AppButton>
@@ -211,6 +224,7 @@ export default function AddPost() {
             style={{ display: "none" }}
             ref={fileInputRef}
             onChange={handleFileChange}
+            multiple={true}
           />
         </div>
         <h1 className="font-bold text-lg py-4">Caption</h1>

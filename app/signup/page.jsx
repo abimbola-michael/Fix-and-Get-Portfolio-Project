@@ -17,6 +17,8 @@ export default function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [username, setUserName] = useState("");
+
   const [password, setPassword] = useState("");
   const router = useRouter();
 
@@ -25,26 +27,19 @@ export default function Signup() {
     setName("");
     setPhone("");
     setPassword("");
+    setUserName("");
   }
   const user = {
     name,
     email,
     phone,
+    username,
     profilePhoto: "",
     coverPhoto: "",
     timeJoined: Date.now(),
     lastSeen: Date.now(),
   };
-  const companyDetails = {
-    companyName: "",
-    companyAddress: "",
-    companyLogo: "",
-    companyDescription: "",
-    companyWebsite: "",
-    companyEmail: "",
-    companyPhone: "",
-    currentlocation: "",
-  };
+
   async function createAccount() {
     if (password === "" || email === "") return;
     createUserWithEmailAndPassword(auth, email, password)
@@ -84,6 +79,12 @@ export default function Signup() {
           <h1 className="font-bold text-2xl mb-2">Create Account</h1>
           {/* <p className="mb-2 text-sm">Enter your details below</p> */}
           <LoginInput placeholder={"Name"} value={name} onChange={setName} />
+          <LoginInput
+            placeholder={"Username"}
+            value={username}
+            onChange={setUserName}
+          />
+
           <LoginInput
             placeholder={"Email"}
             value={email}
