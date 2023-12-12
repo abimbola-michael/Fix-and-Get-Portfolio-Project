@@ -5,9 +5,13 @@ import Header from "@/components/Header";
 import HomeTab from "@/components/HomeTab";
 import PostItem from "@/components/PostItem";
 import ProfileStats from "@/components/ProfileStats";
-import { getUser, readUserStats } from "@/firebase/firebase_api";
+import { getUId, getUser, readUserStats } from "@/firebase/firebase_api";
 import { fixCategories, getCategories } from "@/utils/categories";
-import { getUserCategories } from "@/utils/helpers";
+import {
+  getCategoriesAndItems,
+  getUserCategories,
+  getUserCategoriesItems,
+} from "@/utils/helpers";
 import App from "next/app";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
@@ -15,13 +19,14 @@ import React, { useEffect, useState } from "react";
 
 export default function Profile() {
   // const [type, setType] = useState("fix");
-  const [currentTab, setCurrentTab] = useState("Fix");
-  const [currentCategory, setCurrentCategory] = useState("Electronics");
-  const [currentSubCategory, setCurrentSubCategory] = useState("Smartphones");
+  const [currentTab, setCurrentTab] = useState("Details");
+  const [currentCategory, setCurrentCategory] = useState("");
+  const [currentSubCategory, setCurrentSubCategory] = useState("");
   const [title, setTitle] = useState("");
   const params = useParams();
   const [user, setUser] = useState(null);
   const user_id = params.user_id;
+  const myId = getUId();
 
   const router = useRouter();
   useEffect(() => {
@@ -40,19 +45,25 @@ export default function Profile() {
   const categories = getUserCategories(
     currentTab === "Fix" ? user?.fix : user?.get
   );
-  const items = Array.from({ length: 10 }, (v, i) => {
-    return {
-      id: i.toString(),
-      name: "EliteBook G50",
-      desc: "Core i5, 8GB RAM, 1TB SSD, 15.6 inches",
-      price: "200",
-      discPrice: "150",
-      negotiable: false,
-      url: "/images/laptop.jpg",
-      mediaType: "image",
-      available: true,
-    };
-  });
+  const items = getUserCategoriesItems(
+    currentTab === "Fix" ? user?.fix : user?.get,
+    currentCategory,
+    currentSubCategory,
+    title
+  );
+  // const items = Array.from({ length: 10 }, (v, i) => {
+  //   return {
+  //     id: i.toString(),
+  //     name: "EliteBook G50",
+  //     desc: "Core i5, 8GB RAM, 1TB SSD, 15.6 inches",
+  //     price: "200",
+  //     discPrice: "150",
+  //     negotiable: false,
+  //     url: "/images/laptop.jpg",
+  //     mediaType: "image",
+  //     available: true,
+  //   };
+  // });
   function getSubCategories() {
     return categories[
       categories.findIndex((category) => category.name === currentCategory)
@@ -71,7 +82,7 @@ export default function Profile() {
       <p className="font-bold text-lg mx-4 my-2">Profile</p>
       <div className="overflow-y-auto">
         <div className="flex flex-col gap-3 items-center max-w-4xl">
-          <div
+          {/* <div
             className="w-full h-[150px] relative"
             style={{
               backgroundImage: `url(${
@@ -93,10 +104,50 @@ export default function Profile() {
               <AppButton link={"/addpost"}>Add Post</AppButton>
               <AppButton link={"/additem"}>Add Item</AppButton>
             </div>
-          </div>
+          </div> */}
 
-          <div className="mt-[40px] px-3 flex flex-col w-full">
-            <h2 className="font-semibold">{user?.name}</h2>
+          <div className="w-full flex justify-between items-center px-3">
+            <Image
+              className="rounded-full shrink-0 aspect-square"
+              src={user?.profilePhoto || "/images/photo.jpg"}
+              alt="profile picture"
+              width={150}
+              height={150}
+            />
+            <div className="flex flex-col w-full">
+              {/* <h1 className="font-bold text-2xl">
+                {user?.name || "Abimbola Michael"}
+              </h1> */}
+
+              {user_id === myId ? (
+                <div className="w-full flex justify-end gap-3 px-3">
+                  <AppButton outline={true} link={"/editprofile"}>
+                    Edit Profile
+                  </AppButton>
+                  <AppButton outline={true} link={"/addpost"}>
+                    Add Post
+                  </AppButton>
+                  <AppButton outline={true} link={"/additem"}>
+                    Add Item
+                  </AppButton>
+                </div>
+              ) : (
+                <div className="w-full flex justify-end gap-3 px-3">
+                  <AppButton outline={true} link={"/editprofile"}>
+                    Follow
+                  </AppButton>
+                  <AppButton outline={true} onClick={() => {}}>
+                    Message
+                  </AppButton>
+                  <AppButton outline={true} onClick={() => {}}>
+                    Call
+                  </AppButton>
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="px-3 flex flex-col w-full">
+            <h2 className="font-semibold">{user?.name || "Abimbola"}</h2>
             <h1 className="font-bold text-2xl">Fixit Enterprise</h1>
             <p className="">
               Fixit Enterprise is a company that assist in fixing of cars and
@@ -129,6 +180,11 @@ export default function Profile() {
           </div>
         </div>
         <div className="w-full flex justify-evenly mb-3">
+          <HomeTab
+            name="Details"
+            currentTab={currentTab}
+            setCurrentTab={setCurrentTab}
+          />
           {user?.fix?.length > 0 && (
             <HomeTab
               name="Fix"
@@ -231,27 +287,66 @@ export default function Profile() {
                 ))}
               </ul>
             )}
-            {currentTab === "Fix" && (
-              <ul className="flex gap-3 flex-wrap">
-                {user?.fix.map((item) => (
-                  <FixGetItem key={item.id} item={item} />
-                ))}
-              </ul>
-            )}
-            {currentTab === "Get" && (
-              <ul className="flex gap-3 flex-wrap">
-                {user?.get.map((item) => (
-                  <FixGetItem key={item.id} item={item} />
-                ))}
-              </ul>
-            )}
             {/* {(currentTab === "Fix" || currentTab === "Get") && (
-            <ul className="flex gap-3 flex-wrap">
-              {items.map((item) => (
-                <FixGetItem key={item.id} item={item} />
-              ))}
-            </ul>
-          )} */}
+              <ul className="flex gap-3 flex-wrap">
+                {items.map((item) => (
+                  <FixGetItem key={item.id} item={item} />
+                ))}
+              </ul>
+            )} */}
+            {(currentTab === "Fix" || currentTab === "Get") && (
+              <ul className="flex gap-3 flex-wrap">
+                {getCategoriesAndItems(items, "category", currentCategory).map(
+                  (result) => (
+                    <li
+                      key={result.name}
+                      className="flex flex-col gap-2 w-full"
+                    >
+                      <h1 className="text-xl font-bold">{result.name}</h1>
+                      <ul className="flex gap-3 flex-wrap">
+                        {getCategoriesAndItems(
+                          result.items,
+                          "subCategory",
+                          currentSubCategory
+                        ).map((result) => (
+                          <li
+                            key={result.name}
+                            className="flex flex-col gap-2 w-full"
+                          >
+                            <h1 className="text-lg font-bold">{result.name}</h1>
+                            <ul className="flex gap-3 flex-wrap">
+                              {getCategoriesAndItems(
+                                result.items,
+                                "title",
+                                title
+                              ).map((result) => (
+                                <li
+                                  key={result.name}
+                                  className="flex flex-col gap-2 w-full"
+                                >
+                                  <h1 className="text-md font-semibold">
+                                    {result.name}
+                                  </h1>
+                                  <ul className="flex gap-3 flex-wrap">
+                                    {result.items.map((item) => (
+                                      <FixGetItem
+                                        key={item.id}
+                                        item={item}
+                                        isFeed={true}
+                                      />
+                                    ))}
+                                  </ul>
+                                </li>
+                              ))}
+                            </ul>
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  )
+                )}
+              </ul>
+            )}
           </div>
         </div>
         {/* {currentCategory && (

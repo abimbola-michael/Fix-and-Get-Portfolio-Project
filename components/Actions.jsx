@@ -17,11 +17,13 @@ import { usePathname } from "next/navigation";
 import { logout } from "@/firebase";
 import PopupMenuButton from "./PopupMenuButton";
 import { getUId } from "@/firebase/firebase_api";
+import LoginActions from "./LoginActions";
 
 export default function Actions() {
   const pathname = usePathname();
   const [searching, setSearching] = useState(false);
   const userId = getUId();
+  if (!userId) return <LoginActions />;
 
   return (
     <div className="flex gap-5 items-center text-2xl">

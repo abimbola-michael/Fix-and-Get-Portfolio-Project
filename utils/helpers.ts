@@ -1,3 +1,5 @@
+import { getUId } from "@/firebase/firebase_api";
+
 interface Item {
   name: string;
   desc: string;
@@ -48,6 +50,66 @@ export async function convertBlobToFile(blob: Blob, fileName: string) {
   const file = new File([blob], fileName, { type: blob.type });
   return file;
 }
+
+export function getCategoriesAndItems(
+  items: Array<{
+    id: string;
+    type: string;
+    category: string;
+    subCategory: string;
+    title: string;
+    name: string;
+    desc: string;
+    price: string;
+    discPrice: string;
+    negotiable: boolean;
+    url: string;
+    mediaType: string;
+    fileName: string;
+    time: string;
+    available: boolean;
+  }>,
+  type: string,
+  name: string
+) {
+  let finalCategories = [];
+  if (!items) return finalCategories;
+  const categories = items.reduce((prev, item) => {
+    const index = prev.find((catItem) =>
+      type === "category"
+        ? catItem.name === item.category
+        : type === "subCategory"
+        ? catItem.name === item.subCategory
+        : catItem.name === item.title
+    );
+    return index
+      ? prev.filter((value, i) =>
+          i === index ? { ...value, items: [...value.items, item] } : value
+        )
+      : [
+          ...prev,
+          {
+            name:
+              type === "category"
+                ? item.category
+                : type === "subCategory"
+                ? item.subCategory
+                : item.title,
+            items: [item],
+          },
+        ];
+  }, []);
+  if (name) {
+    const category = categories.find((cat) => cat.name === name);
+    if (category) {
+      return [category];
+    } else {
+      return categories;
+    }
+  } else {
+    return categories;
+  }
+}
 export function getUserCategories(
   items: Array<{
     id: string;
@@ -68,6 +130,7 @@ export function getUserCategories(
   }>
 ) {
   let finalCategories = [];
+  if (!items) return finalCategories;
   const categories = items.reduce((prev, item) => {
     const index = prev.find((catItem) => catItem.name === item.category);
     return index
@@ -89,6 +152,126 @@ export function getUserCategories(
     }, []);
     finalCategories.push({ name: category.name, subcategories: subCategories });
   });
-
   return finalCategories;
+}
+
+export function getCategoryItems(
+  items: Array<{
+    id: string;
+    type: string;
+    category: string;
+    subCategory: string;
+    title: string;
+    name: string;
+    desc: string;
+    price: string;
+    discPrice: string;
+    negotiable: boolean;
+    url: string;
+    mediaType: string;
+    fileName: string;
+    time: string;
+    available: boolean;
+  }>
+) {
+  let finalCategories = [];
+  if (!items) return finalCategories;
+  const categories = items.reduce((prev, item) => {
+    const index = prev.find((catItem) => catItem.name === item.category);
+    return index
+      ? prev.filter((value, i) =>
+          i === index ? { ...value, items: [...value.items, item] } : value
+        )
+      : [...prev, { name: item.category, items: [item] }];
+  }, []);
+  categories.forEach((category) => {
+    const subCategories = category.items.reduce((prev, item) => {
+      const index = prev.find((catItem) => catItem.name === item.subCategory);
+      return index
+        ? prev.filter((value, i) =>
+            i === index ? { ...value, items: [...value.items, item] } : value
+          )
+        : [...prev, { name: item.subCategory, items: [item] }];
+    }, []);
+    finalCategories.push({ name: category.name, subcategories: subCategories });
+  });
+  return finalCategories;
+}
+
+export function getUserCategoriesItems(
+  items: Array<{
+    id: string;
+    type: string;
+    category: string;
+    subCategory: string;
+    title: string;
+    name: string;
+    desc: string;
+    price: string;
+    discPrice: string;
+    negotiable: boolean;
+    url: string;
+    mediaType: string;
+    fileName: string;
+    time: string;
+    available: boolean;
+  }>,
+  category: string,
+  subCategory: string,
+  title: string
+) {
+  let finalCategories = [];
+  if (!items) return finalCategories;
+
+  if (!category) return items;
+  const categoryItems = items.filter((item) => item.category === category);
+  if (!subCategory) return categoryItems;
+  const subCategoryItems = categoryItems.filter(
+    (item) => item.subCategory === subCategory
+  );
+  if (!title) return subCategoryItems;
+  return subCategoryItems.filter((item) => item.title === title);
+}
+
+export function getLastMessages(messages: Array<any>) {
+  const myId = getUId();
+
+  const lastMessages = messages.reduce((prev, message) => {
+    const id = message.userId === myId ? message.receiverId : message.userId;
+
+    const index = prev.findIndex(
+      (prevMessage) =>
+        (prevMessage.receiverId === id || prevMessage.userId === id) &&
+        prevMessage.time < message.time
+    );
+    return index !== -1
+      ? prev.map((value, i) => (i === index ? { ...message } : value))
+      : [...prev, { ...message }];
+  }, []);
+  return lastMessages;
+}
+
+export function getIndividualMessages(messages: Array<any>) {
+  const myId = getUId();
+  const indMessages = messages.reduce((prev, message) => {
+    const id = message.userId === myId ? message.receiverId : message.userId;
+    const index = prev.findIndex((prevMessage) => prevMessage.userId === id);
+    return index
+      ? prev.map((value, i) =>
+          i === index
+            ? { ...value, messages: [...value.messages, ...message] }
+            : value
+        )
+      : [...prev, { userId: id, messages: [...message] }];
+  }, []);
+  return indMessages;
+}
+
+export function getUserMessages(messages: Array<any>, userId: string) {
+  const myId = getUId();
+  return messages.filter(
+    (value) =>
+      (value.userId === myId && value.receiverId === userId) ||
+      (value.userId === userId && value.receiverId === myId)
+  );
 }

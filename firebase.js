@@ -105,7 +105,9 @@ export async function addValue(path, value) {
 export async function setValue(path, value) {
   try {
     return setDoc(doc(db, path.join("/")), value);
-  } catch (e) {}
+  } catch (e) {
+    return null;
+  }
 }
 
 export async function removeValue(path, value) {
@@ -117,7 +119,6 @@ export async function removeValue(path, value) {
 export async function getValue(path) {
   try {
     const docSnapshot = await getDoc(doc(db, path.join("/")));
-    console.log(`Document data: ${docSnapshot.data()}`);
     return docSnapshot.data();
   } catch (e) {
     return {};
@@ -135,7 +136,7 @@ export function getRealtimeValue(path, callback) {
 export async function getValues(path) {
   try {
     const querySnapshot = await getDocs(collection(db, path.join("/")));
-    return querySnapshot.docs.map((doc) => doc.data());
+    return querySnapshot?.docs?.map((doc) => doc.data());
   } catch (e) {
     return [];
   }
@@ -145,7 +146,7 @@ export function getRealtimeValues(path, callback) {
     const unSub = onSnapshot(
       collection(db, path.join("/")),
       (querySnapshot) => {
-        callback(querySnapshot.docs.map((doc) => doc.data()));
+        callback(querySnapshot?.docs?.map((doc) => doc.data()));
       }
     );
     return unSub;
@@ -158,8 +159,8 @@ export function getRealtimeValueChanges(path, callback) {
       collection(db, path.join("/")),
       (querySnapshot) => {
         callback(
-          querySnapshot.docChanges.map((change) => {
-            change.type, change.doc.data();
+          querySnapshot?.docChanges?.map((change) => {
+            return { type: change.type, data: change.doc.data() };
           })
         );
       }

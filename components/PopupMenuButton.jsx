@@ -23,7 +23,7 @@ export default function PopupMenuButton({ items, children }) {
   }, []);
   return (
     <div
-      className="relative"
+      className="relative hover:text-black"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
@@ -35,7 +35,7 @@ export default function PopupMenuButton({ items, children }) {
               className=""
               key={index}
               onClick={() => {
-                items.action();
+                item.action();
                 handleMouseLeave();
               }}
             >

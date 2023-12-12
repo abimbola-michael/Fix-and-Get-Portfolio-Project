@@ -2,6 +2,7 @@ import {
   auth,
   getId,
   getRealtimeValue,
+  getRealtimeValueChanges,
   getRealtimeValues,
   getValue,
   getValues,
@@ -39,11 +40,12 @@ export async function readUserStats(userId: string) {
   const fix = await getValues(["users", userId, "fix"]);
   const followers = await getValues(["users", userId, "followers"]);
   const following = await getValues(["users", userId, "following"]);
-  user.posts = posts;
-  user.get = get;
-  user.fix = fix;
-  user.followers = followers;
-  user.following = following;
+  if (!user) return null;
+  user.posts = posts ?? [];
+  user.get = get ?? [];
+  user.fix = fix ?? [];
+  user.followers = followers ?? [];
+  user.following = following ?? [];
   // const likes = getValues(["users", userId, "likes"]);
   // const comments = getValues(["users", userId, "comments"]);
   // const shares = getValues(["users", userId, "shares"]);
@@ -60,15 +62,53 @@ export async function readUserStats(userId: string) {
   // const fixers = getValues(["users", userId, "fixers"]);
   return user;
 }
+export async function sendChatMessage(message: {
+  userId: string;
+  receiverId: string;
+  messageId: string;
+  message: string;
+  messageType: string;
+  url: string;
+  mediaType: string;
+  for: string;
+  forId: string;
+  time: number;
+  read: boolean;
+}) {
+  const userId = getUId();
+  const receiverId = message.receiverId;
+  const id = getId(["users", userId, "messages"]);
+  const newMessage = { ...message, messageId: id };
+  setValue(["users", userId, "messages", id], newMessage);
+  setValue(["users", receiverId, "messages", id], newMessage);
+}
+export async function readMessages() {
+  const userId = getUId();
+  return getValues(["users", userId, "messages"]);
+}
+export function readRealtimeMessages(callback) {
+  const userId = getUId();
+  return getRealtimeValues(["users", userId, "messages"], callback);
+}
+export function readMessageChanges(callback) {
+  const userId = getUId();
+  return getRealtimeValueChanges(["users", userId, "messages"], callback);
+}
 export async function updateCompanyProfile(company: {
   companyName: string;
+  companyPhoto: string;
   companyAddress: string;
   companyLogo: string;
   companyDescription: string;
   companyWebsite: string;
   companyEmail: string;
   companyPhone: string;
+  companyWhatsApp: string;
+  companyCategory: string;
+  companyCertifications: string;
+  companyLocation: string;
   currentlocation: string;
+  jobRole: string;
 }) {
   const userId = getUId();
   const id = getId(["companies"]);
@@ -141,6 +181,23 @@ export async function addItems(
     }
   }
 }
+export async function addUser(user: {
+  userId: string;
+  name: string;
+  email: string;
+  phone: string;
+  username: string;
+}) {
+  const time = Date.now();
+  return setValue(["users", user.userId], {
+    ...user,
+    profilePhoto: "",
+    timeJoined: time,
+    lastSeen: time,
+    online: true,
+  });
+}
+
 export async function addPost(post: {
   type: string;
   category: string;
@@ -196,6 +253,27 @@ export async function deletePost(id: string) {
 
 export async function readPosts() {
   return getValues(["posts"]);
+}
+export async function readUsers() {
+  return getValues(["users"]);
+}
+export async function readNotifications() {
+  const userId = getUId();
+  return getValues(["users", userId, "notifications"]);
+}
+export async function sendNotification({ title, message, toId }) {
+  const userId = getUId();
+  const id = getId(["users", userId, "notifications"]);
+  const notification = {
+    id,
+    userId,
+    toId,
+    title,
+    message,
+    time: Date.now(),
+    read: false,
+  };
+  setValue(["users", userId, "notifications", id], notification);
 }
 export function readRealtimePosts(callback) {
   return getRealtimeValues(["posts"], callback);

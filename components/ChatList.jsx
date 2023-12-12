@@ -1,11 +1,16 @@
 "use client";
 import Image from "next/image";
 import React, { use, useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { IoCallOutline } from "react-icons/io5";
 import { LuSearch } from "react-icons/lu";
 import { BiSolidSend } from "react-icons/bi";
 import ChatItem from "./ChatItem";
+import { IoIosArrowBack } from "react-icons/io";
+import { changeChat } from "@/slices/appSlice";
+import { getUserMessages } from "@/utils/helpers";
+import { getUId, sendChatMessage } from "@/firebase/firebase_api";
+import { getId } from "@/firebase";
 
 const users = [
   {
@@ -57,22 +62,38 @@ const startChats = [
   },
 ];
 
-export default function ChatList() {
+export default function ChatList({ messages }) {
   const listRef = useRef(null);
+  const dispatch = useDispatch();
   const [text, setText] = useState("");
   const [chats, setChats] = useState(startChats);
   const chatId = useSelector((state) => state.app.chatId);
   const user = users.find((user) => user.id === chatId);
+  const chatMessages = getUserMessages(messages, chatId);
   function sendMessage() {
-    setChats((chats) => [
-      ...chats,
-      {
-        id: chats.length + 1,
-        uid: Math.round(Math.random()).toString(),
-        message: text,
-        name: "Hotshot",
-      },
-    ]);
+    const myId = getUId();
+    const message = {
+      userId: myId,
+      receiverId: chatId,
+      message: text,
+      messageType: "text",
+      url: "",
+      mediaType: "",
+      for: "",
+      forId: "",
+      time: Date.now(),
+      read: false,
+    };
+    sendChatMessage(message);
+    // setChats((chats) => [
+    //   ...chats,
+    //   {
+    //     id: chats.length + 1,
+    //     uid: Math.round(Math.random()).toString(),
+    //     message: text,
+    //     name: "Hotshot",
+    //   },
+    // ]);
     setText("");
   }
   useEffect(() => {
@@ -95,15 +116,21 @@ export default function ChatList() {
 
   if (!user) {
     return (
-      <div className="h-full flex flex-col items-center justify-center">
+      <div className="hidden md:flex h-full flex-col items-center justify-center">
         <p>Tap on a user to chat</p>
       </div>
     );
   }
   return (
-    <div className="flex flex-col h-full">
-      <div className="shrink-0 flex justify-between items-center">
+    <div className="flex flex-col h-full w-full">
+      <div className="h-[60px] flex justify-between items-center">
         <div key={user.id} className="flex gap-2 px-4 py-2 items-center">
+          <IoIosArrowBack
+            className="text-2xl"
+            onClick={() => {
+              dispatch(changeChat(""));
+            }}
+          />
           <Image
             src={"/images/mechanic.jpg"}
             alt={`${user.id}_img`}
@@ -121,24 +148,32 @@ export default function ChatList() {
           <LuSearch />
         </div>
       </div>
-      <ul ref={listRef} className="grow overflow-y-auto">
-        {chats.map((chat) => (
-          <ChatItem key={chat.id} chat={chat} />
-        ))}
-      </ul>
-      <div className="shrink-0 flex gap-3 justify-center items-center rounded-full outline-none border-2 border-grey-400 shadow-md w-full px-3 py-2 m-3">
-        <input
-          className="mx-4 flex-1 text-sm focus:outline-none w-full"
-          placeholder="Write message... "
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
-        <BiSolidSend
-          className="w-8 h-8"
-          onClick={() => {
-            sendMessage();
-          }}
-        />
+      <div className="h-[calc(100vh-220px)] overflow-y-auto px-3">
+        <ul ref={listRef} className="">
+          {chatMessages.map((message) => (
+            <ChatItem key={message.id} message={message} />
+          ))}
+          {/* {chats.map((chat) => (
+            <ChatItem key={chat.id} chat={chat} />
+          ))} */}
+        </ul>
+      </div>
+
+      <div className="h-[60px] w-full">
+        <div className="h-full flex gap-2 justify-center items-center rounded-full outline-none border-2 border-grey-400 shadow-md px-3 mx-3">
+          <input
+            className="mx-4 flex-1 text-sm focus:outline-none w-full"
+            placeholder="Write message... "
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
+          <BiSolidSend
+            className="w-8 h-8"
+            onClick={() => {
+              sendMessage();
+            }}
+          />
+        </div>
       </div>
     </div>
   );

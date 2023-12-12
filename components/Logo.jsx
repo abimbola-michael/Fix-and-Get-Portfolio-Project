@@ -14,14 +14,11 @@ export default function Logo() {
       href={"/"}
       className={`${
         quicksand.className
-      } text-3xl font-bold hover:text-blue-500 ${
+      } text-2xl md:text-3xl font-bold hover:text-blue-500 ${
         pathname === "/" ? "text-blue-500" : "text-black"
       }`}
     >
       fix&get
-      {/* <span className="text-blue-500">Fix</span>
-      <span> & </span>
-      <span className="text-orange-500">Get</span> */}
     </Link>
   );
 }

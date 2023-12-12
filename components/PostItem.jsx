@@ -5,6 +5,11 @@ import StoreItem from "./FixGetItem";
 import { convertMilisecToTime } from "@/utils/helpers";
 import Carousel from "./Carousel";
 import ProfileStats from "./ProfileStats";
+import { BiLike } from "react-icons/bi";
+import { BiSolidLike } from "react-icons/bi";
+import { BiComment } from "react-icons/bi";
+import { BiRepost } from "react-icons/bi";
+import { PiShareFatBold } from "react-icons/pi";
 
 export default function PostItem({
   post: {
@@ -92,10 +97,20 @@ export default function PostItem({
           ))}
         </div>
       )}
-      <div className="flex items-center gap-3 w-full">
-        <ProfileStats title="Likes" count={100} />
-        <ProfileStats title="Comments" count={50} />
+      <div className="flex flex-col md:flex-row md:justify-between gap-2">
+        <div className="flex items-center gap-3">
+          <ProfileStats title="Likes" count={100} />
+          <ProfileStats title="Comments" count={50} />
+          <ProfileStats title="Reposts" count={200} />
+        </div>
+        <div className="flex items-center gap-5 text-3xl">
+          <BiSolidLike />
+          <BiComment />
+          <BiRepost />
+          <PiShareFatBold />
+        </div>
       </div>
+
       {/* <ul className="w-full flex gap-3">
         {items.map((item) => (
           <StoreItem post={item} key={item.url} />

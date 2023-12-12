@@ -2,7 +2,9 @@
 import Header from "@/components/Header";
 import LoginButton from "@/components/LoginButton";
 import LoginInput from "@/components/LoginInput";
-import { auth, db, setValue } from "@/firebase";
+import Logo from "@/components/Logo";
+import { auth, db, logout, setValue } from "@/firebase";
+import { addUser } from "@/firebase/firebase_api";
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
@@ -29,28 +31,22 @@ export default function Signup() {
     setPassword("");
     setUserName("");
   }
-  const user = {
-    name,
-    email,
-    phone,
-    username,
-    profilePhoto: "",
-    coverPhoto: "",
-    timeJoined: Date.now(),
-    lastSeen: Date.now(),
-  };
 
   async function createAccount() {
     if (password === "" || email === "") return;
     createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
+      .then(async (userCredential) => {
         const user = userCredential.user;
-        try {
-          setValue(["users", user.uid], user);
-        } catch (e) {
-          console.error(e);
-        }
-        sendEmailVerification(user);
+        const userData = {
+          userId: user.uid,
+          name,
+          email,
+          phone,
+          username,
+        };
+        await sendEmailVerification(user);
+        await addUser(userData);
+        await logout();
         router.push("/");
       })
       .catch((error) => {
@@ -64,7 +60,10 @@ export default function Signup() {
 
   return (
     <div className="flex flex-col h-screen">
-      <Header />
+      {/* <Header /> */}
+      <div className="w-full flex items-center justify-center p-3">
+        <Logo />
+      </div>
       <div className="flex grow my-4 h-full items-center justify-center">
         <div className="w-[50%] hidden md:block">
           <Image
