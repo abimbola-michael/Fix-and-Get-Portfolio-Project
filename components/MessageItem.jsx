@@ -1,5 +1,5 @@
 import { getUser } from "@/firebase/firebase_api";
-import { changeChat } from "@/slices/appSlice";
+import { changeChatUserId } from "@/slices/appSlice";
 import { convertMilisecToTime } from "@/utils/helpers";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
@@ -21,7 +21,9 @@ export default function MessageItem({
     <li
       key={userId}
       className="flex gap-2 px-4 py-2 items-center"
-      onClick={() => dispatch(changeChat(user.id))}
+      onClick={() => {
+        dispatch(changeChatUserId(userId));
+      }}
     >
       <Image
         src={"/images/mechanic.jpg"}
@@ -38,10 +40,10 @@ export default function MessageItem({
           </p>
         </div>
         <div className="flex justify-between items-center gap-2">
-          <p className="text-sm text-gray-700 text-ellipsis">
+          <p className="text-sm text-gray-700 text-ellipsis line-clamp-1">
             {lastMessage.message}
           </p>
-          {lastMessage.unread && (
+          {unread > 0 && (
             <p className="text-[12px] bg-blue-500 text-white font-bold px-[6px] py-[2px] rounded-full">
               {unread}
             </p>

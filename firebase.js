@@ -15,6 +15,7 @@ import {
   orderBy,
   query,
   setDoc,
+  updateDoc,
   where,
 } from "firebase/firestore";
 import {
@@ -28,8 +29,10 @@ import {
   uploadBytesResumable,
 } from "firebase/storage";
 import {
+  EmailAuthProvider,
   createUserWithEmailAndPassword,
   getAuth,
+  reauthenticateWithCredential,
   signOut,
   updateEmail,
   updatePassword,
@@ -57,6 +60,22 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const auth = getAuth();
+
+export async function comfirmPassword(password) {
+  try {
+    var credential = EmailAuthProvider.credential(
+      auth.currentUser.email,
+      password
+    );
+    const result = await reauthenticateWithCredential(
+      auth.currentUser,
+      credential
+    );
+    return result;
+  } catch (e) {
+    return null;
+  }
+}
 
 export async function createAccount(email, password) {
   return createUserWithEmailAndPassword(auth, email, password);
@@ -109,7 +128,13 @@ export async function setValue(path, value) {
     return null;
   }
 }
-
+export async function updateValue(path, value) {
+  try {
+    return updateDoc(doc(db, path.join("/")), value);
+  } catch (e) {
+    return null;
+  }
+}
 export async function removeValue(path, value) {
   try {
     return deleteDoc(doc(db, path.join("/")), value);
@@ -146,6 +171,10 @@ export function getRealtimeValues(path, callback) {
     const unSub = onSnapshot(
       collection(db, path.join("/")),
       (querySnapshot) => {
+        if (!querySnapshot?.docs) {
+          callback([]);
+          return;
+        }
         callback(querySnapshot?.docs?.map((doc) => doc.data()));
       }
     );
@@ -158,8 +187,12 @@ export function getRealtimeValueChanges(path, callback) {
     const unSub = onSnapshot(
       collection(db, path.join("/")),
       (querySnapshot) => {
+        if (!querySnapshot?.docChanges()) {
+          callback([]);
+          return;
+        }
         callback(
-          querySnapshot?.docChanges?.map((change) => {
+          querySnapshot?.docChanges().map((change) => {
             return { type: change.type, data: change.doc.data() };
           })
         );

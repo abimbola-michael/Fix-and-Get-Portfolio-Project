@@ -1,4 +1,4 @@
-import { changeChat } from "@/slices/appSlice";
+import { changeChatUserId } from "@/slices/appSlice";
 import Image from "next/image";
 import React from "react";
 import { useDispatch } from "react-redux";
@@ -9,7 +9,7 @@ export default function CommentItem({ user, comment }) {
     <li
       key={user.id}
       className="flex gap-2 px-4 py-2 items-center"
-      onClick={() => dispatch(changeChat(user.id))}
+      onClick={() => dispatch(changeChatUserId(user.id))}
     >
       <Image
         src={"/images/mechanic.jpg"}

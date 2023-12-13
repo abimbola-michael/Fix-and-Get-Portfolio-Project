@@ -6,7 +6,7 @@ import Actions from "./Actions";
 import Logo from "./Logo";
 import { getUId } from "@/firebase/firebase_api";
 import LoginActions from "./LoginActions";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { CgProfile } from "react-icons/cg";
 import PopupMenuButton from "./PopupMenuButton";
 import Link from "next/link";
@@ -17,23 +17,26 @@ import { IoMdClose } from "react-icons/io";
 import { PiList } from "react-icons/pi";
 import { auth, logout } from "@/firebase";
 import { onAuthStateChanged } from "firebase/auth";
+import { useSelector } from "react-redux";
 
 export default function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const [searching, setSearching] = useState(false);
   const [open, setOpen] = useState(false);
-  const [userId, setUserId] = useState(null);
-  useEffect(
-    () =>
-      onAuthStateChanged(auth, (user) => {
-        if (user && user.emailVerified) {
-          setUserId(user.uid);
-        } else {
-          setUserId(null);
-        }
-      }),
-    []
-  );
+  const userId = useSelector((state) => state.app.currentUserId);
+  // const [userId, setUserId] = useState(null);
+  // useEffect(
+  //   () =>
+  //     onAuthStateChanged(auth, (user) => {
+  //       if (user && user.emailVerified) {
+  //         setUserId(user.uid);
+  //       } else {
+  //         setUserId(null);
+  //       }
+  //     }),
+  //   []
+  // );
 
   function close() {
     setOpen(false);
@@ -139,9 +142,9 @@ export default function Header() {
                   </p>
             </Link> */}
           <Link
-            href={`/profile/${userId}`}
+            href={`/profile?userId=${userId}`}
             className={`flex gap-2 items-center ${
-              pathname === `/profile/${userId}` ? "text-blue-500" : ""
+              pathname === `/profile?userId=${userId}` ? "text-blue-500" : ""
             } hover:text-blue-500`}
           >
             <PopupMenuButton
@@ -151,6 +154,7 @@ export default function Header() {
                   name: "Logout",
                   action: () => {
                     logout();
+                    router.push("/login");
                   },
                 },
               ]}

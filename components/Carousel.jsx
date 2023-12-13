@@ -70,6 +70,9 @@ export default function Carousel({
     setCurrentIndex(newIndex);
     callback && callback(newIndex);
   };
+  const isLastSlide = currentIndex === urls.length - 1;
+  const isFirstSlide = currentIndex === 0;
+
   const nextSlide = useCallback(() => {
     const isLastSlide = currentIndex === urls.length - 1;
     const newIndex = isLastSlide ? 0 : currentIndex + 1;
@@ -87,32 +90,46 @@ export default function Carousel({
 
   return (
     <div
-      className={`flex flex-col gap-2 w-full h-full relative group overflow-hidden ${
+      className={`bg-center flex flex-col gap-2 w-full h-full relative group overflow-hidden ${
         indicators === "images" ? "" : "rounded-lg"
       }`}
+      style={{
+        backgroundImage:
+          urls.length === 0 ? `url(/images/img_placeholder.png)` : null,
+      }}
     >
-      <ul
-        className={`${
-          indicators === "images" ? "h-[80%]" : "h-full"
-        } flex w-full rounded-2xl duration-500 transition-transform ease-out`}
-        style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+      {urls.length > 0 && (
+        <ul
+          className={`${
+            indicators === "images" ? "h-[80%]" : "h-full"
+          } flex w-full rounded-2xl duration-500 transition-transform ease-out`}
+          style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+        >
+          {urls.map((url) => (
+            <li className="w-full h-full flex-none" key={url}>
+              <Image
+                className="object-cover w-full h-full aspect-auto"
+                src={url}
+                alt={`${url}_image`}
+                width={1000}
+                height={700}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
+      <div
+        className={`hidden group-hover:${
+          isFirstSlide ? "hidden" : "block"
+        } absolute top-[50%] left-5 -translate-x-0 translate-y-[-50%] text-2xl rounded-full p-2 bg-black/20 text-white cursor-pointer`}
       >
-        {urls.map((url) => (
-          <li className="w-full h-full flex-none" key={url}>
-            <Image
-              className="object-cover w-full h-full aspect-auto"
-              src={url}
-              alt={`${url}_image`}
-              width={1000}
-              height={700}
-            />
-          </li>
-        ))}
-      </ul>
-      <div className="hidden group-hover:block absolute top-[50%] left-5 -translate-x-0 translate-y-[-50%] text-2xl rounded-full p-2 bg-black/20 text-white cursor-pointer">
         <BsChevronCompactLeft onClick={prevSlide} size={30} />
       </div>
-      <div className="hidden group-hover:block absolute top-[50%] right-5 -translate-x-0 translate-y-[-50%] text-2xl rounded-full p-2 bg-black/20 text-white cursor-pointer">
+      <div
+        className={`hidden group-hover:${
+          isLastSlide || currentIndex < 1 ? "hidden" : "block"
+        } absolute top-[50%] right-5 -translate-x-0 translate-y-[-50%] text-2xl rounded-full p-2 bg-black/20 text-white cursor-pointer`}
+      >
         <BsChevronCompactRight onClick={nextSlide} size={30} />
       </div>
       {indicators === "images" && (

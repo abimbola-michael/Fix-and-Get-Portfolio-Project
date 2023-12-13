@@ -8,9 +8,10 @@ import { BiSolidSend } from "react-icons/bi";
 import ChatItem from "./ChatItem";
 import { IoIosArrowBack } from "react-icons/io";
 import { changeChat } from "@/slices/appSlice";
-import { getUserMessages } from "@/utils/helpers";
-import { getUId, sendChatMessage } from "@/firebase/firebase_api";
+import { convertMilisecToTime, getUserMessages } from "@/utils/helpers";
+import { getUId, getUser, sendChatMessage } from "@/firebase/firebase_api";
 import { getId } from "@/firebase";
+import { useSearchParams } from "next/navigation";
 
 const users = [
   {
@@ -67,14 +68,24 @@ export default function ChatList({ messages }) {
   const dispatch = useDispatch();
   const [text, setText] = useState("");
   const [chats, setChats] = useState(startChats);
-  const chatId = useSelector((state) => state.app.chatId);
-  const user = users.find((user) => user.id === chatId);
-  const chatMessages = getUserMessages(messages, chatId);
+  const userId = useSelector((state) => state.app.chatUserId);
+  // const params = useSearchParams();
+  // const userId = params.get("userId");
+  const [user, setUser] = useState(null);
+  useEffect(() => {
+    async function readUser() {
+      const user = await getUser(userId);
+      setUser(user);
+    }
+    readUser();
+  }, [userId]);
+  //const user = users.find((user) => user.id === userId);
+  const chatMessages = getUserMessages(messages, userId);
   function sendMessage() {
     const myId = getUId();
     const message = {
       userId: myId,
-      receiverId: chatId,
+      receiverId: userId,
       message: text,
       messageType: "text",
       url: "",
@@ -95,12 +106,13 @@ export default function ChatList({ messages }) {
     //   },
     // ]);
     setText("");
+    scrollToBottom();
   }
-  useEffect(() => {
-    if (listRef.current) {
-      listRef.current.scrollTop = listRef.current.scrollHeight;
-    }
-  }, [chats]);
+  // useEffect(() => {
+  //   if (listRef.current) {
+  //     listRef.current.scrollTop = listRef.current.scrollHeight;
+  //   }
+  // }, [chats]);
 
   useEffect(() => {
     const handleKeyPress = (e) => {
@@ -113,8 +125,12 @@ export default function ChatList({ messages }) {
       document.removeEventListener("keydown", handleKeyPress);
     };
   }, [sendMessage]);
-
-  if (!user) {
+  const scrollToBottom = () => {
+    if (listRef.current) {
+      listRef.current.scrollTop = listRef.current.scrollHeight;
+    }
+  };
+  if (!userId) {
     return (
       <div className="hidden md:flex h-full flex-col items-center justify-center">
         <p>Tap on a user to chat</p>
@@ -124,7 +140,7 @@ export default function ChatList({ messages }) {
   return (
     <div className="flex flex-col h-full w-full">
       <div className="h-[60px] flex justify-between items-center">
-        <div key={user.id} className="flex gap-2 px-4 py-2 items-center">
+        <div key={user?.userId} className="flex gap-2 px-4 py-2 items-center">
           <IoIosArrowBack
             className="text-2xl"
             onClick={() => {
@@ -132,15 +148,17 @@ export default function ChatList({ messages }) {
             }}
           />
           <Image
-            src={"/images/mechanic.jpg"}
-            alt={`${user.id}_img`}
+            src={user?.profilePhoto || "/images/mechanic.jpg"}
+            alt={`${user?.name} Profile Photo`}
             width={50}
             height={50}
             className="rounded-full cover aspect-square"
           />
           <div className="flex flex-col">
-            <p className="text-md">{user.name}</p>
-            <p className="text-sm text-gray-700 line-clamp-1">{user.message}</p>
+            <p className="text-md">{user?.name}</p>
+            <p className="text-sm text-gray-700 line-clamp-1">
+              {user?.online ? "Online" : convertMilisecToTime(user?.lastSeen)}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-5 text-2xl mx-2 md:mx-4">
@@ -148,10 +166,13 @@ export default function ChatList({ messages }) {
           <LuSearch />
         </div>
       </div>
-      <div className="h-[calc(100vh-220px)] overflow-y-auto px-3">
-        <ul ref={listRef} className="">
+      <div
+        ref={listRef}
+        className="w-full h-[calc(100vh-220px)] overflow-y-auto px-3"
+      >
+        <ul className="h-full w-full">
           {chatMessages.map((message) => (
-            <ChatItem key={message.id} message={message} />
+            <ChatItem key={message.messageId} message={message} />
           ))}
           {/* {chats.map((chat) => (
             <ChatItem key={chat.id} chat={chat} />
@@ -159,10 +180,11 @@ export default function ChatList({ messages }) {
         </ul>
       </div>
 
-      <div className="h-[60px] w-full">
-        <div className="h-full flex gap-2 justify-center items-center rounded-full outline-none border-2 border-grey-400 shadow-md px-3 mx-3">
+      <div className="w-full">
+        <div className="h-full py-2 flex gap-2 justify-center items-center rounded-full outline-none border-2 border-grey-400 shadow-md px-3 mx-3">
           <input
-            className="mx-4 flex-1 text-sm focus:outline-none w-full"
+            multiline={true}
+            className="mx-4 flex-1 text-sm focus:outline-none w-full resize-y"
             placeholder="Write message... "
             value={text}
             onChange={(e) => setText(e.target.value)}

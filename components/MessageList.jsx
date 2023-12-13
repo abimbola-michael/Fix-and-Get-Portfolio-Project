@@ -2,7 +2,7 @@
 import { changeChat } from "@/slices/appSlice";
 import Image from "next/image";
 import React from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import MessageItem from "./MessageItem";
 import { getIndividualMessages } from "@/utils/helpers";
 
@@ -28,13 +28,15 @@ import { getIndividualMessages } from "@/utils/helpers";
 // ];
 
 export default function MessageList({ messages }) {
-  const dispatch = useDispatch();
+  const myId = useSelector((state) => state.app.currentUserId);
   const indMessages = getIndividualMessages(messages).map((message) => {
-    const lastMessages = messages.sort((a, b) => b.time - a.time);
-    const unread = messages.filter((message) => !message.read).length;
+    const sortedMessages = message.messages.sort((a, b) => b.time - a.time);
+    const unread = message.messages.filter(
+      (message) => message.userId != myId && !message.read
+    ).length;
     return {
       userId: message.userId,
-      lastMessage: lastMessages[0],
+      lastMessage: sortedMessages[0],
       unread,
     };
   });

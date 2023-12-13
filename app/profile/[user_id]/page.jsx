@@ -228,22 +228,27 @@ export default function Profile() {
         </ul> */}
 
         <div className="w-full flex flex-col gap-2 px-4">
-          <ul className="flex gap-2 overflow-x-auto">
-            {categories.map((category) => (
-              <li key={category.name}>
-                <AppButton
-                  outline={currentCategory !== category.name}
-                  onClick={() => {
-                    setCurrentCategory(category.name);
-                    setCurrentSubCategory("");
-                    setTitle("");
-                  }}
-                >
-                  {category.name}
-                </AppButton>
-              </li>
-            ))}
-          </ul>
+          {(currentTab === "Fix" || currentTab === "Get") && (
+            <ul className="flex gap-2 overflow-x-auto">
+              {categories.map((category) => (
+                <li key={category.name}>
+                  <AppButton
+                    outline={currentCategory !== category.name}
+                    onClick={() => {
+                      setCurrentCategory((cat) =>
+                        cat != "" ? "" : category.name
+                      );
+
+                      setCurrentSubCategory("");
+                      setTitle("");
+                    }}
+                  >
+                    {category.name}
+                  </AppButton>
+                </li>
+              ))}
+            </ul>
+          )}
 
           {currentCategory && (
             <ul className="flex gap-2 overflow-x-auto">
@@ -252,7 +257,9 @@ export default function Profile() {
                   <AppButton
                     outline={currentSubCategory !== category.name}
                     onClick={() => {
-                      setCurrentSubCategory(category.name);
+                      setCurrentSubCategory((cat) =>
+                        cat != "" ? "" : category.name
+                      );
                       setTitle("");
                     }}
                   >
@@ -268,7 +275,7 @@ export default function Profile() {
                 <li key={name}>
                   <AppButton
                     outline={title !== name}
-                    onClick={() => setTitle(name)}
+                    onClick={() => setTitle((tit) => (tit != "" ? "" : name))}
                   >
                     {name}
                   </AppButton>

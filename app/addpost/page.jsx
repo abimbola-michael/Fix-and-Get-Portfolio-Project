@@ -110,7 +110,9 @@ export default function AddPost() {
                 <AppButton
                   outline={currentCategory !== category.name}
                   onClick={() => {
-                    setCurrentCategory(category.name);
+                    setCurrentCategory((cat) =>
+                      cat != "" ? "" : category.name
+                    );
                     setCurrentSubCategory("");
                     setTitle("");
                   }}
@@ -136,7 +138,9 @@ export default function AddPost() {
                   <AppButton
                     outline={currentSubCategory !== category.name}
                     onClick={() => {
-                      setCurrentSubCategory(category.name);
+                      setCurrentSubCategory((cat) =>
+                        cat != "" ? "" : category.name
+                      );
                       setTitle("");
                     }}
                   >
@@ -160,7 +164,7 @@ export default function AddPost() {
                 <li key={name}>
                   <AppButton
                     outline={title !== name}
-                    onClick={() => setTitle(name)}
+                    onClick={() => setTitle((tit) => (tit != "" ? "" : name))}
                   >
                     {name}
                   </AppButton>

@@ -2,7 +2,8 @@ import { Inter, Montserrat } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./provider";
 import Header from "@/components/Header";
-
+import "react-toastify/dist/ReactToastify.css";
+import dotenv from "dotenv";
 const inter = Inter({ subsets: ["latin"] });
 const montserrat = Montserrat({ subsets: ["latin"] });
 

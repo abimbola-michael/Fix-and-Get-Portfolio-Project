@@ -45,10 +45,10 @@ export default function FixGetItem({
         </div>
       </div>
       <div className="flex flex-col w-full">
-        <h2 className="w-full font-bold text-md px-2">{name}</h2>
-        <p className="w-full text-sm px-2">{desc}</p>
+        <h2 className="w-full font-bold text-md">{name}</h2>
+        <p className="w-full text-sm">{desc}</p>
 
-        <div className="flex gap-2 px-2 items-center">
+        <div className="flex gap-2 items-center">
           <p className="text-md py-1 font-bold text-blue-500">
             NGN {discPrice ? discPrice : price}
           </p>

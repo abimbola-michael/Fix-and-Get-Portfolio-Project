@@ -8,9 +8,15 @@ import {
   getValues,
   removeValue,
   setValue,
+  updateValue,
   uploadFileResumable,
 } from "@/firebase";
-import { getFileBlob, listToStrings } from "@/utils/helpers";
+import {
+  checkIfObjectKeysAndValuesMatch,
+  getFileBlob,
+  getUnmatchedObjects,
+  listToStrings,
+} from "@/utils/helpers";
 
 export function getUId() {
   return auth.currentUser?.uid;
@@ -86,35 +92,65 @@ export async function readMessages() {
   const userId = getUId();
   return getValues(["users", userId, "messages"]);
 }
-export function readRealtimeMessages(callback) {
-  const userId = getUId();
+export function readRealtimeMessages(userId, callback) {
+  if (!userId) return null;
+  //const userId = getUId();
   return getRealtimeValues(["users", userId, "messages"], callback);
 }
-export function readMessageChanges(callback) {
-  const userId = getUId();
+export function readMessageChanges(userId, callback) {
+  //const userId = auth.currentUser?.uid;
+  //if (!userId) return null;
+  //const userId = getUId();
+  console.log(`userId ${userId}`);
   return getRealtimeValueChanges(["users", userId, "messages"], callback);
 }
-export async function updateCompanyProfile(company: {
-  companyName: string;
-  companyPhoto: string;
-  companyAddress: string;
-  companyLogo: string;
-  companyDescription: string;
-  companyWebsite: string;
-  companyEmail: string;
-  companyPhone: string;
-  companyWhatsApp: string;
-  companyCategory: string;
-  companyCertifications: string;
-  companyLocation: string;
-  currentlocation: string;
-  jobRole: string;
-}) {
-  const userId = getUId();
-  const id = getId(["companies"]);
-  setValue(["companies", id], company);
-  setValue(["users", userId, "company"], id);
+
+export async function getBusiness(userId: string) {
+  return getValue(["businesses", userId]);
 }
+export async function updateUserProfile(user, newUser) {
+  if (!user) return setValue(["users", newUser.userId], newUser);
+  const match = checkIfObjectKeysAndValuesMatch(user, newUser);
+  const updated = getUnmatchedObjects(user, newUser);
+  console.log(
+    `match ${match}, updated ${Object.keys(updated)} ${Object.values(updated)}`
+  );
+  if (match) return;
+  if (updated) {
+    return updateValue(["users", newUser.userId], updated);
+  }
+}
+export async function updateBusinessProfile(business, newBusiness) {
+  if (!business)
+    return setValue(["businesses", newBusiness.userId], newBusiness);
+  const match = checkIfObjectKeysAndValuesMatch(business, newBusiness);
+  const updated = getUnmatchedObjects(business, newBusiness);
+  if (match) return;
+  if (updated) {
+    return updateValue(["businesses", newBusiness.userId], updated);
+  }
+}
+// export async function updateBusinessProfile(business: {
+//   userId: string;
+//   businessName: string;
+//   businessEmail: string;
+//   businessPhone: string;
+//   businessCallPhone: string;
+//   businessLogo: string;
+//   businessAddress: string;
+//   businessLocation: string;
+//   businessLocationPhotos: string;
+//   businessDescription: string;
+//   businessCategory: string;
+//   businessRole: string;
+//   businessWebsite: string;
+//   businessCertifications: string;
+//   currentlocation: string;
+// }) {
+//   const userId = getUId();
+//   setValue(["businesses", userId], business);
+//   setValue(["users", userId, "business"], userId);
+// }
 export async function addItems(
   items: Array<{
     type: string;

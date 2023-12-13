@@ -66,10 +66,10 @@ export default function Search() {
             {users.map((user) => {
               return (
                 <UserItem
-                  key={user.id}
+                  key={user.userId}
                   user={user}
                   onClick={() => {
-                    router.push("/message");
+                    router.push(`/profile?userId=${user.userId}`);
                   }}
                 />
               );

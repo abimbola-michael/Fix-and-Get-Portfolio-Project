@@ -9,6 +9,103 @@ interface Item {
   files: string;
 }
 
+export function haversineDistance(lat1, lon1, lat2, lon2) {
+  // Convert latitude and longitude from degrees to radians
+  const toRadians = (angle) => (angle * Math.PI) / 180;
+
+  // Radius of the Earth in kilometers
+  const earthRadius = 6371;
+
+  // Differences in coordinates
+  const dLat = toRadians(lat2 - lat1);
+  const dLon = toRadians(lon2 - lon1);
+
+  // Haversine formula
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRadians(lat1)) *
+      Math.cos(toRadians(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  // Distance in kilometers
+  const distance = earthRadius * c;
+
+  return distance;
+}
+// export function checkIfObjectKeysAndValuesMatch(firstObject, secondObject) {
+//   const firstObjectKeys = Object.keys(firstObject);
+//   const secondObjectKeys = Object.keys(secondObject);
+//   let lowerObjectKeys = firstObjectKeys;
+//   let lowerObject = firstObject;
+//   let higherObject = secondObject;
+//   if (firstObjectKeys.length !== secondObjectKeys.length) {
+//     lowerObjectKeys =
+//       firstObjectKeys.length < secondObjectKeys.length
+//         ? firstObjectKeys
+//         : secondObjectKeys;
+//     higherObject =
+//       firstObjectKeys.length < secondObjectKeys.length
+//         ? secondObject
+//         : firstObject;
+//     lowerObject =
+//       firstObjectKeys.length < secondObjectKeys.length
+//         ? firstObject
+//         : secondObject;
+//   }
+//   for (let i = 0; i < lowerObjectKeys.length; i++) {
+//     const key = lowerObjectKeys[i];
+//     if (lowerObject[key] !== higherObject[key]) return false;
+//   }
+//   return true;
+// }
+// export function getUnmatchedObjects(firstObject, secondObject) {
+//   let newObject = {};
+//   const firstObjectKeys = Object.keys(firstObject);
+//   const secondObjectKeys = Object.keys(secondObject);
+//   const higherObjectKeys =
+//     firstObjectKeys.length > secondObjectKeys.length
+//       ? firstObjectKeys
+//       : secondObjectKeys;
+//   const higherObject =
+//     firstObjectKeys.length > secondObjectKeys.length
+//       ? firstObject
+//       : secondObject;
+//   const lowerObject = higherObject === firstObject ? secondObject : firstObject;
+//   for (let i = 0; i < higherObjectKeys.length; i++) {
+//     const key = higherObjectKeys[i];
+//     if (lowerObject[key] && higherObject[key] !== lowerObject[key]) {
+//       //newObject = { ...newObject, [key]: higherObject[key] };
+//       newObject[key] = lowerObject[key];
+//     }
+//   }
+//   return newObject;
+// }
+
+export function checkIfObjectKeysAndValuesMatch(firstObject, secondObject) {
+  const firstObjectKeys = Object.keys(firstObject);
+  const secondObjectKeys = Object.keys(secondObject);
+  for (let i = 0; i < secondObjectKeys.length; i++) {
+    const key = secondObjectKeys[i];
+    if (secondObject[key] !== firstObject[key]) return false;
+  }
+  return true;
+}
+export function getUnmatchedObjects(firstObject, secondObject) {
+  let newObject = {};
+  const firstObjectKeys = Object.keys(firstObject);
+  const secondObjectKeys = Object.keys(secondObject);
+
+  for (let i = 0; i < secondObjectKeys.length; i++) {
+    const key = secondObjectKeys[i];
+    if (secondObject[key] !== firstObject[key]) {
+      newObject[key] = secondObject[key];
+    }
+  }
+  return newObject;
+}
 export function convertFileToPath(file: File) {
   return URL.createObjectURL(file);
 }
@@ -24,12 +121,13 @@ export function convertToCommaString(items: Array<any>, callback) {
 export function convertToDate(date: string) {
   return new Date(parseInt(date)).toLocaleDateString("en-US");
 }
-export function convertMilisecToTime(milisec: number) {
+export function convertMilisecToTime(milisec?: number) {
+  if (!milisec) return "";
   const date = new Date(milisec);
   const hours = date.getHours() % 12 || 12; // Convert to 12-hour format
   const minutes = date.getMinutes();
   const ampm = date.getHours() < 12 ? "AM" : "PM";
-  return `${hours}:${minutes} ${ampm}`;
+  return `${hours}:${minutes < 10 ? `0${minutes}` : minutes} ${ampm}`;
 }
 
 export async function getFile(path: string) {
@@ -245,7 +343,7 @@ export function getLastMessages(messages: Array<any>) {
         prevMessage.time < message.time
     );
     return index !== -1
-      ? prev.map((value, i) => (i === index ? { ...message } : value))
+      ? prev.map((value, i) => (i === index ? message : value))
       : [...prev, { ...message }];
   }, []);
   return lastMessages;
@@ -256,13 +354,13 @@ export function getIndividualMessages(messages: Array<any>) {
   const indMessages = messages.reduce((prev, message) => {
     const id = message.userId === myId ? message.receiverId : message.userId;
     const index = prev.findIndex((prevMessage) => prevMessage.userId === id);
-    return index
+    return index != -1
       ? prev.map((value, i) =>
           i === index
-            ? { ...value, messages: [...value.messages, ...message] }
+            ? { ...value, messages: [...value.messages, message] }
             : value
         )
-      : [...prev, { userId: id, messages: [...message] }];
+      : [...prev, { userId: id, messages: [message] }];
   }, []);
   return indMessages;
 }

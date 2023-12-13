@@ -16,7 +16,7 @@ export default function MainPageDisplay() {
   const handleMouseEnter = (category) => {
     clearTimeout(hoverTimeout.current);
     hoverTimeout.current = setTimeout(() => {
-      setCurrentCategory(category.name);
+      setCurrentCategory((cat) => (cat != "" ? "" : category.name));
     }, 100);
   };
 

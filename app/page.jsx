@@ -5,22 +5,20 @@ import Header from "@/components/Header";
 import MainPageDisplay from "@/components/MainPageDisplay";
 import { auth, db } from "@/firebase";
 import { getUId } from "@/firebase/firebase_api";
+import { changeCurrentUser, changeCurrentUserId } from "@/slices/appSlice";
 import { onAuthStateChanged } from "firebase/auth";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 
 export default function Home() {
   const router = useRouter();
-  // const [users, setUsers] = useState([]);
+  const dispatch = useDispatch();
   // useEffect(
   //   () =>
   //     onAuthStateChanged(auth, (user) => {
-  //       if (user && user.emailVerified) {
-  //         const uid = user.uid;
-  //       } else {
-  //         router.push("/login");
-  //       }
+  //       dispatch(changeCurrentUserId(user?.uid ?? ""));
   //     }),
   //   []
   // );
