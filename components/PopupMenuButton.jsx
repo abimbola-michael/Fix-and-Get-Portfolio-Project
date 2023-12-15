@@ -1,45 +1,52 @@
 import React, { useEffect, useRef, useState } from "react";
 
-export default function PopupMenuButton({ items, children }) {
-  const [hover, setHover] = useState(false);
+export default function PopupMenuButton({ items, children, useHover = true }) {
+  const [show, setShow] = useState(false);
   const hoverTimeout = useRef(null);
 
   const handleMouseEnter = () => {
     clearTimeout(hoverTimeout.current);
     hoverTimeout.current = setTimeout(() => {
-      setHover(true);
+      setShow(true);
     }, 100);
   };
 
   const handleMouseLeave = () => {
     clearTimeout(hoverTimeout.current);
     hoverTimeout.current = setTimeout(() => {
-      setHover(false);
+      setShow(false);
     }, 100);
   };
 
   useEffect(() => {
-    return () => clearTimeout(hoverTimeout.current);
+    return () => {
+      if (hoverTimeout?.current) {
+        clearTimeout(hoverTimeout.current);
+      }
+    };
   }, []);
   return (
     <div
-      className="relative hover:text-black"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      className="relative hover:text-black flex flex-col items-start"
+      onMouseEnter={useHover ? handleMouseEnter : null}
+      onMouseLeave={useHover ? handleMouseLeave : null}
     >
-      {children}
-      {hover && (
-        <ul className="z-10 bg-white absolute top-[30px] right-0 shadow-md p-5 text-sm flex flex-col gap-4">
+      <div className="w-full" onClick={useHover ? null : () => setShow(!show)}>
+        {children}
+      </div>
+
+      {show && (
+        <ul className="w-[200px] z-10 bg-white absolute top-[30px] left-[-100px] shadow-lg p-5 text-sm flex flex-col gap-4 items-start">
           {items.map((item, index) => (
             <li
-              className=""
+              className="w-full flex justify-start items-center gap-2 hover:text-blue-500"
               key={index}
               onClick={() => {
-                item.action();
+                item.action(index);
                 handleMouseLeave();
               }}
             >
-              {item.name}
+              {item.child}
             </li>
           ))}
         </ul>

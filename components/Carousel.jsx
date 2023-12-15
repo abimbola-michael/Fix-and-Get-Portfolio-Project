@@ -57,12 +57,15 @@ import { RxDotFilled } from "react-icons/rx";
 
 export default function Carousel({
   urls,
+  mediaTypes,
+  index = 0,
   autoSlide,
   slideDuration = 3000,
   callback,
   indicators = "dots",
 }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  if (!mediaTypes) mediaTypes = Array(urls.length).fill("image");
+  const [currentIndex, setCurrentIndex] = useState(index);
 
   const prevSlide = () => {
     const isFirstSlide = currentIndex === 0;
@@ -105,29 +108,39 @@ export default function Carousel({
           } flex w-full rounded-2xl duration-500 transition-transform ease-out`}
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
         >
-          {urls.map((url) => (
-            <li className="w-full h-full flex-none" key={url}>
-              <Image
-                className="object-cover w-full h-full aspect-auto"
-                src={url}
-                alt={`${url}_image`}
-                width={1000}
-                height={700}
-              />
+          {urls.map((url, index) => (
+            <li className="w-full h-full flex-none" key={index}>
+              {mediaTypes[index] === "video" ? (
+                <video
+                  className="object-cover w-full h-full aspect-auto"
+                  src={url}
+                  autoPlay
+                  muted
+                  loop
+                />
+              ) : (
+                <Image
+                  className="object-cover w-full h-full aspect-auto"
+                  src={url}
+                  alt={`${url}_image`}
+                  width={1000}
+                  height={700}
+                />
+              )}
             </li>
           ))}
         </ul>
       )}
       <div
         className={`hidden group-hover:${
-          isFirstSlide ? "hidden" : "block"
+          urls.length === 0 || isFirstSlide ? "hidden" : "block"
         } absolute top-[50%] left-5 -translate-x-0 translate-y-[-50%] text-2xl rounded-full p-2 bg-black/20 text-white cursor-pointer`}
       >
         <BsChevronCompactLeft onClick={prevSlide} size={30} />
       </div>
       <div
         className={`hidden group-hover:${
-          isLastSlide || currentIndex < 1 ? "hidden" : "block"
+          urls.length === 0 || isLastSlide ? "hidden" : "block"
         } absolute top-[50%] right-5 -translate-x-0 translate-y-[-50%] text-2xl rounded-full p-2 bg-black/20 text-white cursor-pointer`}
       >
         <BsChevronCompactRight onClick={nextSlide} size={30} />

@@ -149,9 +149,9 @@ export default function Header() {
           >
             <PopupMenuButton
               items={[
-                { name: "Settings", action: () => {} },
+                { child: "Settings", action: () => {} },
                 {
-                  name: "Logout",
+                  child: "Logout",
                   action: () => {
                     logout();
                     router.push("/login");
@@ -159,9 +159,17 @@ export default function Header() {
                 },
               ]}
             >
-              <CgProfile />
+              <div
+                className={`flex gap-2 items-center ${
+                  pathname === `/profile?userId=${userId}`
+                    ? "text-blue-500"
+                    : ""
+                } hover:text-blue-500`}
+              >
+                <CgProfile />
+                <p className={`md:hidden font-bold text-lg`}>Profile</p>
+              </div>
             </PopupMenuButton>
-            <p className={`md:hidden font-bold text-lg`}>Profile</p>
             {/* <CgProfile
               
               />

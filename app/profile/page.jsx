@@ -1,32 +1,53 @@
 "use client";
 import AppButton from "@/components/AppButton";
+import Carousel from "@/components/Carousel";
 import FixGetItem from "@/components/FixGetItem";
 import Header from "@/components/Header";
 import HomeTab from "@/components/HomeTab";
+import Loader from "@/components/Loader";
+import PopupMenuButton from "@/components/PopupMenuButton";
 import PostItem from "@/components/PostItem";
+import ProfileDetail from "@/components/ProfileDetail";
 import ProfileStats from "@/components/ProfileStats";
-import { getUId, getUser, readUserStats } from "@/firebase/firebase_api";
+import {
+  getBusiness,
+  getUId,
+  getUser,
+  readUserStats,
+  toggleFollowUser,
+} from "@/firebase/firebase_api";
 import { changeChatUserId } from "@/slices/appSlice";
 import { fixCategories, getCategories } from "@/utils/categories";
 import {
   getCategoriesAndItems,
   getUserCategories,
   getUserCategoriesItems,
+  stringsToList,
 } from "@/utils/helpers";
 import App from "next/app";
 import Image from "next/image";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
+import { FaWhatsapp } from "react-icons/fa";
+import { IoLogoWhatsapp } from "react-icons/io";
+
+import { FaTelegramPlane } from "react-icons/fa";
+import { IoCall } from "react-icons/io5";
+import VideoImageDisplay from "@/components/VideoImageDisplay";
 
 export default function Profile() {
   // const [type, setType] = useState("fix");
+  const [following, setFollowing] = useState(null);
   const [currentTab, setCurrentTab] = useState("Details");
   const [currentCategory, setCurrentCategory] = useState("");
   const [currentSubCategory, setCurrentSubCategory] = useState("");
   const [title, setTitle] = useState("");
   const params = useSearchParams();
   const [user, setUser] = useState(null);
+  const [business, setBusiness] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [displayDetails, setDisplayDetails] = useState(null);
   const userId = params.get("userId");
   const myId = getUId();
 
@@ -35,16 +56,29 @@ export default function Profile() {
   useEffect(() => {
     async function getUserData() {
       const user = await readUserStats(userId);
+      const business = await getBusiness(userId);
+      if (userId !== myId) {
+        setFollowing(user.followers.map((value) => value.id).includes(myId));
+      }
       setUser(user);
+      setBusiness(business);
+      setLoading(false);
     }
     getUserData();
-  }, [userId]);
+  }, [userId, myId]);
   // const categories =
   //   currentTab === "Fix"
   //     ? fixCategories
   //     : currentTab === "Get"
   //     ? getCategories
   //     : [];
+
+  const callOptions = [
+    { name: "Phone Call", logo: <IoCall />, link: "tel:" },
+    { name: "WhatsApp Voice Call", logo: <IoLogoWhatsapp />, link: "tel:" },
+    { name: "WhatsApp Video Call", logo: <IoLogoWhatsapp />, link: "tel:" },
+    { name: "Telegram Call", logo: <FaTelegramPlane />, link: "tel:" },
+  ];
   const categories = getUserCategories(
     currentTab === "Fix" ? user?.fix : user?.get
   );
@@ -54,19 +88,7 @@ export default function Profile() {
     currentSubCategory,
     title
   );
-  // const items = Array.from({ length: 10 }, (v, i) => {
-  //   return {
-  //     id: i.toString(),
-  //     name: "EliteBook G50",
-  //     desc: "Core i5, 8GB RAM, 1TB SSD, 15.6 inches",
-  //     price: "200",
-  //     discPrice: "150",
-  //     negotiable: false,
-  //     url: "/images/laptop.jpg",
-  //     mediaType: "image",
-  //     available: true,
-  //   };
-  // });
+
   function getSubCategories() {
     return categories[
       categories.findIndex((category) => category.name === currentCategory)
@@ -82,110 +104,100 @@ export default function Profile() {
   return (
     <div className="h-screen w-full max-w-4xl mx-auto overflow-hidden flex flex-col">
       <Header />
-      <p className="font-bold text-lg mx-4 my-2">Profile</p>
+      <p className="font-bold text-lg px-4 my-2">Profile</p>
       <div className="overflow-y-auto">
         <div className="flex flex-col gap-3 items-center max-w-4xl">
-          {/* <div
-            className="w-full h-[150px] relative"
-            style={{
-              backgroundImage: `url(${
-                user?.coverPhoto || "/images/laptop.jpg"
-              })`,
-            }}
-          >
+          <div className="w-full flex flex-col items-center px-3">
             <Image
-              className="absolute left-[20px] bottom-[-50px] rounded-full shrink-0 aspect-square"
-              src={user?.profilePhoto || "/images/photo.jpg"}
-              alt="profile picture"
-              width={100}
-              height={100}
-            />
-            <div className="w-full flex justify-end gap-3 absolute bottom-[-50px] px-3">
-              <AppButton outline={true} link={"/editprofile"}>
-                Edit Profile
-              </AppButton>
-              <AppButton link={"/addpost"}>Add Post</AppButton>
-              <AppButton link={"/additem"}>Add Item</AppButton>
-            </div>
-          </div> */}
-
-          <div className="w-full flex justify-between items-center px-3">
-            <Image
-              className="rounded-full shrink-0 aspect-square"
-              src={user?.profilePhoto || "/images/photo.jpg"}
+              className="rounded-full shrink-0 aspect-square my-2 bg-gray-100"
+              src={user?.profilePhoto || "/images/profile_placeholder.png"}
               alt="profile picture"
               width={150}
               height={150}
             />
-            <div className="flex flex-col w-full">
-              {/* <h1 className="font-bold text-2xl">
-                {user?.name || "Abimbola Michael"}
-              </h1> */}
-
-              {userId === myId ? (
-                <div className="w-full flex justify-end gap-3 px-3">
-                  <AppButton outline={true} link={"/editprofile"}>
-                    Edit Profile
-                  </AppButton>
-                  <AppButton outline={true} link={"/addpost"}>
-                    Add Post
-                  </AppButton>
-                  <AppButton outline={true} link={"/additem"}>
-                    Add Item
-                  </AppButton>
-                </div>
-              ) : (
-                <div className="w-full flex justify-end gap-3 px-3">
-                  <AppButton outline={true} link={"/editprofile"}>
-                    Follow
-                  </AppButton>
-                  <AppButton
-                    outline={true}
-                    onClick={() => {
-                      dispatch(changeChatUserId(userId));
-                      router.push("/message");
-                    }}
-                  >
-                    Message
-                  </AppButton>
+            <div className="px-3 flex flex-col items-center w-full">
+              <h2 className="font-semibold">{user?.name ?? ""}</h2>
+              {business?.businessName && (
+                <h1 className="font-bold text-2xl">{business?.businessName}</h1>
+              )}
+              {business?.businessDescription && (
+                <p className="text-md">{business?.businessDescription}</p>
+              )}
+              <div className="flex items-center gap-3">
+                {user?.fix?.length > 0 && (
+                  <ProfileStats
+                    title="Fix Items"
+                    count={user?.fix?.length ?? 0}
+                  />
+                )}
+                {user?.get?.length > 0 && (
+                  <ProfileStats
+                    title="Get Items"
+                    count={user?.get?.length ?? 0}
+                  />
+                )}
+                <ProfileStats title="Posts" count={user?.posts?.length ?? 0} />
+                <ProfileStats
+                  title="Followers"
+                  count={user?.followers?.length ?? 0}
+                />
+                <ProfileStats
+                  title="Following"
+                  count={user?.following?.length ?? 0}
+                />
+              </div>
+            </div>
+            {userId === myId ? (
+              <div className="w-full flex justify-evenly items-center gap-3 p-3">
+                <AppButton outline={true} link={"/editprofile"}>
+                  Edit Profile
+                </AppButton>
+                <AppButton outline={true} link={"/addpost"}>
+                  Add Post
+                </AppButton>
+                <AppButton outline={true} link={"/additem"}>
+                  Add Item
+                </AppButton>
+              </div>
+            ) : (
+              <div className="w-full flex justify-evenly items-center gap-3 p-3">
+                <AppButton
+                  outline={!following}
+                  onClick={() => {
+                    toggleFollowUser(userId, following, setFollowing, setUser);
+                  }}
+                >
+                  Follow
+                </AppButton>
+                <AppButton
+                  outline={true}
+                  onClick={() => {
+                    dispatch(changeChatUserId(userId));
+                    router.push("/message");
+                  }}
+                >
+                  Message
+                </AppButton>
+                <PopupMenuButton
+                  items={callOptions.map((option) => {
+                    return {
+                      child: (
+                        <div className="flex gap-2 items-center w-full">
+                          <p className="text-lg">{option.logo}</p>
+                          <p className="text-sm ">{option.name}</p>
+                        </div>
+                      ),
+                      action: (index) => {},
+                    };
+                  })}
+                  useHover={false}
+                >
                   <AppButton outline={true} onClick={() => {}}>
                     Call
                   </AppButton>
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="px-3 flex flex-col w-full">
-            <h2 className="font-semibold">{user?.name || "Abimbola"}</h2>
-            <h1 className="font-bold text-2xl">Fixit Enterprise</h1>
-            <p className="">
-              Fixit Enterprise is a company that assist in fixing of cars and
-              other forms of electronics like Refridgerators, Fans, Generators
-              etc
-            </p>
-            <div className="flex items-center gap-3 w-full">
-              {user?.fix?.length > 0 && (
-                <ProfileStats
-                  title="Fix Items"
-                  count={user?.fix?.length ?? 0}
-                />
-              )}
-              {user?.get?.length > 0 && (
-                <ProfileStats
-                  title="Get Items"
-                  count={user?.get?.length ?? 0}
-                />
-              )}
-              <ProfileStats title="Posts" count={user?.posts?.length ?? 0} />
-              <ProfileStats
-                title="Followers"
-                count={user?.followers?.length ?? 0}
-              />
-              <ProfileStats
-                title="Following"
-                count={user?.following?.length ?? 0}
-              />
-            </div>
+                </PopupMenuButton>
+              </div>
+            )}
           </div>
         </div>
         <div className="w-full flex justify-evenly mb-3">
@@ -293,13 +305,81 @@ export default function Profile() {
             </ul>
           )}
           <div className="w-full min-h-[calc(100vh-150px)]">
+            {business && currentTab === "Details" && (
+              <div className="w-full flex flex-col">
+                {business.businessLocationPhotos && (
+                  <ProfileDetail name="Shop Location Photos">
+                    <div className="w-full h-[250px]">
+                      <Carousel
+                        urls={stringsToList(business.businessLocationPhotos)}
+                        autoSlide={false}
+                        callback={(index) => {}}
+                      />
+                    </div>
+                  </ProfileDetail>
+                )}
+                <ProfileDetail
+                  name={"Business Name"}
+                  value={business.businessName}
+                />
+                <ProfileDetail
+                  name={"Business Email"}
+                  value={business.businessEmail}
+                />
+                <ProfileDetail
+                  name={"Business Phone"}
+                  value={business.businessPhone}
+                />
+                <ProfileDetail
+                  name={"Business Call Phone"}
+                  value={business.businessCallPhone}
+                />
+                <ProfileDetail
+                  name={"Business Address"}
+                  value={business.businessAddress}
+                />
+                <ProfileDetail
+                  name={"Business Description"}
+                  value={business.businessDescription}
+                />
+                <ProfileDetail
+                  name={"Business Category"}
+                  value={business.businessCategory}
+                />
+                <ProfileDetail
+                  name={"Business Role"}
+                  value={business.businessRole}
+                />
+                <ProfileDetail
+                  name={"Business Website"}
+                  value={business.businessWebsite}
+                />
+                <ProfileDetail
+                  name={"Business Certification"}
+                  value={business.businessName}
+                />
+              </div>
+            )}
             {currentTab === "Posts" && (
               <ul className="flex gap-3 flex-wrap">
                 {/* {items.map((item) => (
                 <PostItem key={item.id} item={item} />
               ))} */}
-                {user?.posts.map((post) => (
-                  <PostItem key={post.id} post={post} isFeed={false} />
+                {user?.posts.map((post, index) => (
+                  <PostItem
+                    key={post.id}
+                    post={post}
+                    isFeed={false}
+                    onClick={(i) => {
+                      setDisplayDetails({
+                        type: "Post",
+                        url: post.url,
+                        mediaType: post.mediaType,
+                        message: post.caption,
+                        index: i,
+                      });
+                    }}
+                  />
                 ))}
               </ul>
             )}
@@ -399,6 +479,13 @@ export default function Profile() {
           </ul>
         )} */}
       </div>
+      {loading && <Loader />}
+      {displayDetails && (
+        <VideoImageDisplay
+          {...displayDetails}
+          onClose={() => setDisplayDetails(null)}
+        />
+      )}
     </div>
   );
 }

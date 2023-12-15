@@ -39,7 +39,7 @@ export default function MessageItem({
             {convertMilisecToTime(lastMessage.time)}
           </p>
         </div>
-        <div className="flex justify-between items-center gap-2">
+        <div className="flex justify-between items-center gap-2 w-full">
           <p className="text-sm text-gray-700 text-ellipsis line-clamp-1">
             {lastMessage.message}
           </p>

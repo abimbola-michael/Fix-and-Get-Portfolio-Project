@@ -2,15 +2,21 @@
 import AppButton from "@/components/AppButton";
 import Carousel from "@/components/Carousel";
 import Header from "@/components/Header";
+import Loader from "@/components/Loader";
 import LoginInput from "@/components/LoginInput";
+import ProfileDetail from "@/components/ProfileDetail";
 import { changePassword, comfirmPassword } from "@/firebase";
 import {
   getBusiness,
   getUser,
+  updateBusinessLocationPhotos,
+  updateBusinessLogo,
   updateBusinessProfile,
+  updateProfilePhoto,
   updateUserProfile,
 } from "@/firebase/firebase_api";
-import { convertFileToPath } from "@/utils/helpers";
+import { useLocation } from "@/hooks/useLocation";
+import { convertFileToPath, getLocation, stringsToList } from "@/utils/helpers";
 import axios from "axios";
 import { updateEmail } from "firebase/auth";
 import Image from "next/image";
@@ -20,6 +26,7 @@ import { useSelector } from "react-redux";
 import { ToastContainer, toast } from "react-toastify";
 
 export default function EditProfile() {
+  //const { location, setLocation } = useLocation();
   const [editType, setEditType] = useState("profile");
   const [location, setLocation] = useState(null);
   const [error, setError] = useState(null);
@@ -41,7 +48,7 @@ export default function EditProfile() {
   const [businessRole, setBusinessRole] = useState("");
   const [businessWebsite, setBusinessWebsite] = useState("");
   const [businessCertifications, setBusinessCertifications] = useState("");
-  const [currentlocation, setCurrentlocation] = useState("");
+  const [currentLocation, setCurrentLocation] = useState("");
   const [comfirimPassword, setComfirmPassword] = useState("");
   const [user, setUser] = useState(null);
   const [business, setBusiness] = useState(null);
@@ -52,10 +59,14 @@ export default function EditProfile() {
   const [paths, setPaths] = useState([]);
   const [file, setFile] = useState(null);
   const [path, setPath] = useState(null);
-
-  const [isLocationPhotos, setIsLocationPhotos] = useState(false);
+  const [logofile, setLogoFile] = useState(null);
+  const [logopath, setLogoPath] = useState(null);
+  const [fileUploadType, setFileUploadType] = useState("");
+  const [isReplace, setIsReplace] = useState(false);
+  const [fileIndex, setFileIndex] = useState(-1);
   const [comfirm, setComfirm] = useState(false);
   const [comfirmed, setComfirmed] = useState(false);
+  const [loading, setLoading] = useState(true);
   const APIKEY = "";
 
   const newUser = {
@@ -81,101 +92,54 @@ export default function EditProfile() {
     businessRole,
     businessWebsite,
     businessCertifications,
-    currentlocation,
+    currentLocation,
   };
 
-  function openGoogleMaps() {
-    // Replace '1600 Amphitheatre Parkway, Mountain View, CA' with your desired address
-    const address = "1600 Amphitheatre Parkway, Mountain View, CA";
-
-    // Encode the address for the URL
-    const encodedAddress = encodeURIComponent(address);
-    getLatLngFromAddress(address);
-
-    // Construct the Google Maps URL
-    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
-
-    // Open the URL in a new tab or window
-    window.open(googleMapsUrl, "_blank");
-  }
-  const getLatLngFromAddress = async (address) => {
-    try {
-      const response = await axios.get(
-        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-          address
-        )}&key=${process.env.API_KEY}`
-      );
-
-      if (response.data.results.length > 0) {
-        const { lat, lng } = response.data.results[0].geometry.location;
-        console.log("Latitude:", lat);
-        console.log("Longitude:", lng);
-        setLocation({ lat, lng });
-        return { lat, lng };
-      } else {
-        console.error("No results found for the given address");
-        return null;
-      }
-    } catch (error) {
-      console.error("Error fetching data from Google Maps API:", error.message);
-      return null;
-    }
-  };
   useEffect(() => {
     async function readUser() {
       const user = await getUser(userId);
       const business = await getBusiness(userId);
+      setLoading(false);
       if (user) {
         setUser(user);
         setBusiness(business);
-        setName(user?.name ?? "");
-        setEmail(user?.email ?? "");
-        setPhone(user?.phone ?? "");
-        setProfilePhoto(user?.profilePhoto ?? "");
+        setName(user.name);
+        setEmail(user.email);
+        setPhone(user.phone);
+        setProfilePhoto(user.profilePhoto);
+        setPath(user.profilePhoto);
       }
 
       if (business) {
-        setBusinessName(business?.businessName ?? "");
-        setBusinessEmail(business?.businessEmail ?? "");
-        setBusinessPhone(business?.businessPhone ?? "");
-        setBusinessCallPhone(business?.businessCallPhone ?? "");
-        setBusinessLogo(business?.businessLogo ?? "");
-        setBusinessAddress(business?.businessAddress ?? "");
-        setBusinessLocation(business?.businessLocation ?? "");
-        setBusinessLocationPhotos(business?.businessLocationPhotos ?? "");
-        setBusinessDescription(business?.businessDescription ?? "");
-        setBusinessCategory(business?.businessCategory ?? "");
-        setBusinessRole(business?.businessRole ?? "");
-        setBusinessWebsite(business?.businessWebsite ?? "");
-        setBusinessCertifications(business?.businessCertifications ?? "");
+        setBusinessName(business.businessName);
+        setBusinessEmail(business.businessEmail);
+        setBusinessPhone(business.businessPhone);
+        setBusinessCallPhone(business.businessCallPhone);
+        setBusinessLogo(business.businessLogo);
+        setBusinessAddress(business.businessAddress);
+        setBusinessLocation(business.businessLocation);
+        setBusinessLocationPhotos(business.businessLocationPhotos);
+        setBusinessDescription(business.businessDescription);
+        setBusinessCategory(business.businessCategory);
+        setBusinessRole(business.businessRole);
+        setBusinessWebsite(business.businessWebsite);
+        setBusinessCertifications(business.businessCertifications);
+        setLogoPath(business.businessLogo);
+        setPaths(stringsToList(business.businessLocationPhotos));
       }
     }
     readUser();
   }, [userId]);
-  function setUserDetails() {
-    setName(user?.name ?? "");
-    setEmail(user?.email ?? "");
-    setPhone(user?.phone ?? "");
-    setProfilePhoto(user?.profilePhoto ?? "");
-  }
-  function setBusinessDetails() {
-    setBusinessCallPhone(business?.businessCallPhone ?? "");
-    setBusinessLogo(business?.businessLogo ?? "");
-    setBusinessAddress(business?.businessAddress ?? "");
-    setBusinessLocation(business?.businessLocation ?? "");
-    setBusinessLocationPhotos(business?.businessLocationPhotos ?? "");
-    setBusinessDescription(business?.businessDescription ?? "");
-    setBusinessCategory(business?.businessCategory ?? "");
-    setBusinessRole(business?.businessRole ?? "");
-    setBusinessWebsite(business?.businessWebsite ?? "");
-    setBusinessCertifications(business?.businessCertifications ?? "");
+  function removeShopPhoto() {
+    setFiles((files) => files.filter((file, i) => i != fileIndex));
+    setPaths((paths) => paths.filter((path, i) => i != fileIndex));
   }
   const handleButtonClick = () => {
     // Trigger the file input click event
     fileInputRef.current.click();
   };
   const handleFileChange = (event) => {
-    if (isLocationPhotos) {
+    if (fileUploadType === "shop") {
       const selectedFiles = Array.from(event.target.files);
       if (selectedFiles.isEmpty) return;
 
@@ -183,65 +147,111 @@ export default function EditProfile() {
         convertFileToPath(file)
       );
 
-      const newFiles = [...files, ...selectedFiles];
-      const newPaths = [...paths, ...selectedPaths];
+      const newFiles = isReplace
+        ? files.map((file, i) => (fileIndex === i ? selectedFiles[0] : file))
+        : [...files, ...selectedFiles];
+      const newPaths = isReplace
+        ? paths.map((path, i) => (fileIndex === i ? selectedPaths[0] : path))
+        : [...paths, ...selectedPaths];
 
       setFiles(newFiles);
       setPaths(newPaths);
+      if (!isReplace) {
+        setFileIndex(newFiles.length - 1);
+      }
     } else {
       const selectedFile = event.target.files[0];
       if (selectedFile) {
-        setFile(selectedFile);
-        setPath(convertFileToPath(selectedFile));
+        if (fileUploadType === "logo") {
+          setLogoFile(selectedFile);
+          setLogoPath(convertFileToPath(selectedFile));
+        } else {
+          setFile(selectedFile);
+          setPath(convertFileToPath(selectedFile));
+        }
       }
     }
   };
 
-  function getLocation() {
-    //console.log(`key = ${process.env.API_KEY}`);
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setLocation({ latitude, longitude });
-        },
-        (err) => {
-          setError(`Error getting location: ${err.message}`);
-        }
-      );
-    } else {
-      console.log("Geolocation is not supported by this browser.");
-    }
+  function finish() {
+    toast.success("Changes saved successfully");
+    router.back();
+    setLoading(false);
   }
   async function comfirmPasswordAndSave(password) {
     const userCred = await comfirmPassword(password);
     if (userCred?.user?.uid === userId) {
       setComfirmed(true);
-      // if (user) {
-      //   if (user.name !== name) {
-      //     await user.updateProfile({
-      //       displayName: name,
-      //     });
-      //   }
-      // }
+      setLoading(true);
+
       if (editType === "profile") {
         if (user.email !== email) {
           await updateEmail(email);
         }
-        await updateUserProfile(user, newUser);
+        if (path && path != profilePhoto) {
+          updateProfilePhoto(file, async (url) => {
+            newUser.profilePhoto = url;
+            await updateUserProfile(user, newUser);
+            setProfilePhoto(url);
+            finish();
+          });
+        } else {
+          if (!path) {
+            newUser.profilePhoto = "";
+          }
+          await updateUserProfile(user, newUser);
+          finish();
+        }
       } else if (editType === "business") {
-        await updateBusinessProfile(business, newBusiness);
+        async function uploadLogo(callback) {
+          if (logopath && logopath !== businessLogo) {
+            updateBusinessLogo(logofile, async (url) => {
+              newBusiness.businessLogo = url;
+              callback();
+            });
+          } else {
+            if (!logopath) {
+              newBusiness.businessLogo = "";
+            }
+            callback();
+          }
+        }
+        if (
+          paths.length > 0 &&
+          paths !== stringsToList(businessLocationPhotos)
+        ) {
+          updateBusinessLocationPhotos(files, async (url) => {
+            newBusiness.businessLocationPhotos = url;
+            uploadLogo(async () => {
+              await updateBusinessProfile(business, newBusiness);
+              finish();
+            });
+          });
+        } else {
+          if (paths.length === 0) {
+            newBusiness.businessLocationPhotos = "";
+          }
+          uploadLogo(async () => {
+            await updateBusinessProfile(business, newBusiness);
+            finish();
+          });
+        }
       } else if (editType === "password") {
         await changePassword(password);
+        finish();
       }
-      toast.success("Changes saved successfully");
-      router.back();
     } else {
+      setLoading(false);
       setComfirmed(false);
       toast.error("Password incorrect");
     }
   }
-  function saveChanges() {}
+  function getCurrentLocation() {
+    getLocation(({ latitude, longitude, error }) => {
+      setLocation({ latitude, longitude });
+    });
+  }
+
   return (
     <div className="w-full max-w-4xl mx-auto h-screen overflow-hidden flex flex-col">
       <Header />
@@ -252,7 +262,7 @@ export default function EditProfile() {
           style={{ display: "none" }}
           ref={fileInputRef}
           onChange={handleFileChange}
-          multiple={isLocationPhotos}
+          multiple={fileUploadType === "shop" && !isReplace}
         />
         {editType === "profile"
           ? "Edit Profile"
@@ -265,7 +275,7 @@ export default function EditProfile() {
       <div className="overflow-y-auto py-4 px-4 w-full flex flex-col gap-3 items-center">
         {editType === "profile" ? (
           <>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 items-center w-full">
               <Image
                 className="bg-gray-100 rounded-full shrink-0 aspect-square"
                 src={profilePhoto || path || "/images/profile_placeholder.png"}
@@ -277,7 +287,7 @@ export default function EditProfile() {
                 <AppButton
                   className="bg-blue-500 text-white rounded-md px-2 py-1"
                   onClick={() => {
-                    setIsLocationPhotos(false);
+                    setFileUploadType("profile");
                     handleButtonClick();
                   }}
                 >
@@ -287,7 +297,10 @@ export default function EditProfile() {
                 {path && (
                   <AppButton
                     className="bg-blue-500 text-white rounded-md px-2 py-1"
-                    onClick={() => {}}
+                    onClick={() => {
+                      setFile(null);
+                      setPath(null);
+                    }}
                   >
                     Remove Photo
                   </AppButton>
@@ -318,24 +331,29 @@ export default function EditProfile() {
           />
         ) : editType === "business" ? (
           <>
-            <div
-              className="flex flex-col gap-3 w-full"
-              style={{ backgroundImage: `url(${businessLocationPhotos})` }}
-            >
+            <div className="flex flex-col gap-3 w-full">
               <div className="flex flex-col w-full">
                 <p className="text-md text-black py-2">
                   Business Location Photos
                 </p>
-                <div className="w-full h-[200px]">
-                  <Carousel urls={[]} autoSlide={false} />
+                <div className="w-full h-[250px]">
+                  <Carousel
+                    urls={paths}
+                    index={fileIndex}
+                    autoSlide={false}
+                    callback={(index) => {
+                      setFileIndex(index);
+                    }}
+                  />
                 </div>
               </div>
 
               <div className="flex w-full items-center justify-center gap-3">
                 <AppButton
                   className="bg-blue-500 text-white rounded-md px-2 py-1"
-                  onChange={() => {
-                    setIsLocationPhotos(true);
+                  onClick={() => {
+                    setIsReplace(false);
+                    setFileUploadType("shop");
                     handleButtonClick();
                   }}
                 >
@@ -344,7 +362,11 @@ export default function EditProfile() {
                 {paths.length > 0 && (
                   <AppButton
                     className="bg-blue-500 text-white rounded-md px-2 py-1"
-                    onChange={() => {}}
+                    onClick={() => {
+                      setIsReplace(true);
+                      setFileUploadType("shop");
+                      handleButtonClick();
+                    }}
                   >
                     Change Photo
                   </AppButton>
@@ -353,7 +375,10 @@ export default function EditProfile() {
                 {paths.length > 0 && (
                   <AppButton
                     className="bg-blue-500 text-white rounded-md px-2 py-1"
-                    onChange={() => {}}
+                    onClick={() => {
+                      setIsReplace(false);
+                      removeShopPhoto();
+                    }}
                   >
                     Remove Photo
                   </AppButton>
@@ -362,17 +387,35 @@ export default function EditProfile() {
               <div className="flex gap-3 items-center">
                 <Image
                   className="rounded-full shrink-0 aspect-square"
-                  src={businessLogo || "/images/photo.jpg"}
+                  src={businessLogo || logopath || "/images/photo.jpg"}
                   alt="profile picture"
                   width={50}
                   height={50}
                 />
-                <AppButton
-                  className="bg-blue-500 text-white rounded-md px-2 py-1"
-                  onChange={() => {}}
-                >
-                  {path ? "Change" : "Add"} Logo
-                </AppButton>
+                <div className="flex items-center gap-2">
+                  <AppButton
+                    className="bg-blue-500 text-white rounded-md px-2 py-1"
+                    onClick={() => {
+                      setFileUploadType("logo");
+                      setIsReplace(false);
+                      handleButtonClick();
+                    }}
+                  >
+                    {logopath ? "Change" : "Add"} Logo
+                  </AppButton>
+
+                  {logopath && (
+                    <AppButton
+                      className="bg-blue-500 text-white rounded-md px-2 py-1"
+                      onClick={() => {
+                        setLogoPath(null);
+                        setLogoFile(null);
+                      }}
+                    >
+                      Remove Logo
+                    </AppButton>
+                  )}
+                </div>
               </div>
             </div>
             <LoginInput
@@ -421,66 +464,85 @@ export default function EditProfile() {
               value={businessWebsite}
               onChange={setBusinessWebsite}
             />
-            <div className="w-full flex gap-3 items-center">
-              <p className="text-md text-black py-2">
-                Business Location
-                <br /> <span className="font-bold">Location Added</span>{" "}
-              </p>
-              <AppButton onClick={() => {}}>Use current location</AppButton>
-              <AppButton onClick={() => {}}>Use map location</AppButton>
-            </div>
-
-            <div className="w-full flex gap-3 items-center">
-              <p className="text-md text-black py-2">
-                Current Location
-                <br /> <span className="font-bold">Location Added</span>{" "}
-              </p>
-              <AppButton onClick={() => {}}>Get current location</AppButton>
-            </div>
-            <div className="w-full flex gap-3 items-center">
-              <p className="text-md text-black py-2">
-                Business Category
-                <br /> <span className="font-bold">
-                  {businessCategory}
-                </span>{" "}
-              </p>
+            <ProfileDetail
+              name="Business Location"
+              value={
+                businessLocation ? "Location Added" : "Click to Add Location"
+              }
+            >
+              <div className="flex items-center gap-3">
+                <AppButton
+                  onClick={() => {
+                    getLocation(({ latitude, longitude, error }) => {
+                      if (!error) {
+                        const location = `${latitude},${longitude}`;
+                        setBusinessLocation(location);
+                      }
+                    });
+                  }}
+                >
+                  Use current location
+                </AppButton>
+                <AppButton onClick={() => {}}>Use map location</AppButton>
+              </div>
+            </ProfileDetail>
+            <ProfileDetail
+              name="Current Location"
+              value={
+                currentLocation ? "Location Added" : "Click to Add Location"
+              }
+            >
               <AppButton
-                outline={!businessCategory.includes("fix")}
                 onClick={() => {
-                  if (businessCategory.includes("fix")) {
-                    setBusinessCategory(
-                      businessCategory.replace("fix", "").trim()
-                    );
-                  } else {
-                    setBusinessCategory((businessCategory + " fix").trim());
-                  }
+                  getLocation(({ latitude, longitude, error }) => {
+                    if (!error) {
+                      const location = `${latitude},${longitude}`;
+                      setBusinessLocation(location);
+                    }
+                  });
                 }}
               >
-                Fix
+                Get current location
               </AppButton>
-              <AppButton
-                outline={!businessCategory.includes("get")}
-                onClick={() => {
-                  if (businessCategory.includes("get")) {
-                    setBusinessCategory(
-                      businessCategory.replace("get", "").trim()
-                    );
-                  } else {
-                    setBusinessCategory((businessCategory + " get").trim());
-                  }
-                }}
-              >
-                Get
-              </AppButton>
-            </div>
+            </ProfileDetail>
 
-            <div className="w-full flex gap-3 items-center">
-              <p className="text-md text-black py-2">
-                Certifications
-                <br /> <span className="font-bold">Location Added</span>{" "}
-              </p>
+            <ProfileDetail name="Business Category" value={businessCategory}>
+              <div className="flex items-center gap-2">
+                <AppButton
+                  outline={!businessCategory?.includes("fix")}
+                  onClick={() => {
+                    if (businessCategory.includes("fix")) {
+                      setBusinessCategory(
+                        businessCategory.replace("fix", "").trim()
+                      );
+                    } else {
+                      setBusinessCategory((businessCategory + " fix").trim());
+                    }
+                  }}
+                >
+                  Fix
+                </AppButton>
+                <AppButton
+                  outline={!businessCategory?.includes("get")}
+                  onClick={() => {
+                    if (businessCategory.includes("get")) {
+                      setBusinessCategory(
+                        businessCategory.replace("get", "").trim()
+                      );
+                    } else {
+                      setBusinessCategory((businessCategory + " get").trim());
+                    }
+                  }}
+                >
+                  Get
+                </AppButton>
+              </div>
+            </ProfileDetail>
+
+            <ProfileDetail name="Certifications">
               <AppButton onClick={() => {}}>Add Certification</AppButton>
-            </div>
+            </ProfileDetail>
+
             {/* <div className="flex flex-col">
           
             <p>
@@ -509,7 +571,7 @@ export default function EditProfile() {
               } else if (editType === "password") {
                 setEditType("profile");
               } else if (editType === "business") {
-                setEditType("profile");
+                setEditType("password");
               }
             }}
           >
@@ -527,7 +589,7 @@ export default function EditProfile() {
               } else if (editType === "password") {
                 setEditType("business");
               } else if (editType === "business") {
-                setEditType("password");
+                setEditType("profile");
               }
             }}
           >
@@ -588,6 +650,7 @@ export default function EditProfile() {
           </div>
         </div>
       )}
+      {loading && <Loader message={comfirm ? "Saving" : ""} />}
     </div>
   );
 }

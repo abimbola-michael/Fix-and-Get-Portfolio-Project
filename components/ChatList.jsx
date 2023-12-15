@@ -1,13 +1,19 @@
 "use client";
 import Image from "next/image";
-import React, { use, useEffect, useRef, useState } from "react";
+import React, {
+  use,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { IoCallOutline } from "react-icons/io5";
 import { LuSearch } from "react-icons/lu";
 import { BiSolidSend } from "react-icons/bi";
 import ChatItem from "./ChatItem";
 import { IoIosArrowBack } from "react-icons/io";
-import { changeChat } from "@/slices/appSlice";
+import { changeChat, changeChatUserId } from "@/slices/appSlice";
 import { convertMilisecToTime, getUserMessages } from "@/utils/helpers";
 import { getUId, getUser, sendChatMessage } from "@/firebase/firebase_api";
 import { getId } from "@/firebase";
@@ -69,9 +75,11 @@ export default function ChatList({ messages }) {
   const [text, setText] = useState("");
   const [chats, setChats] = useState(startChats);
   const userId = useSelector((state) => state.app.chatUserId);
-  // const params = useSearchParams();
-  // const userId = params.get("userId");
+
   const [user, setUser] = useState(null);
+  useEffect(() => {
+    scrollToBottom();
+  }, []);
   useEffect(() => {
     async function readUser() {
       const user = await getUser(userId);
@@ -79,8 +87,25 @@ export default function ChatList({ messages }) {
     }
     readUser();
   }, [userId]);
-  //const user = users.find((user) => user.id === userId);
   const chatMessages = getUserMessages(messages, userId);
+
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (e.key === "Enter") {
+        sendMessage();
+      }
+    };
+    document.addEventListener("keydown", handleKeyPress);
+    return () => {
+      document.removeEventListener("keydown", handleKeyPress);
+    };
+  }, [sendMessage]);
+  useEffect(() => {
+    if (listRef.current) {
+      listRef.current.scrollTop = listRef.current.scrollHeight;
+    }
+  }, [messages]);
+
   function sendMessage() {
     const myId = getUId();
     const message = {
@@ -96,35 +121,8 @@ export default function ChatList({ messages }) {
       read: false,
     };
     sendChatMessage(message);
-    // setChats((chats) => [
-    //   ...chats,
-    //   {
-    //     id: chats.length + 1,
-    //     uid: Math.round(Math.random()).toString(),
-    //     message: text,
-    //     name: "Hotshot",
-    //   },
-    // ]);
     setText("");
-    scrollToBottom();
   }
-  // useEffect(() => {
-  //   if (listRef.current) {
-  //     listRef.current.scrollTop = listRef.current.scrollHeight;
-  //   }
-  // }, [chats]);
-
-  useEffect(() => {
-    const handleKeyPress = (e) => {
-      if (e.key === "Enter") {
-        sendMessage();
-      }
-    };
-    document.addEventListener("keydown", handleKeyPress);
-    return () => {
-      document.removeEventListener("keydown", handleKeyPress);
-    };
-  }, [sendMessage]);
   const scrollToBottom = () => {
     if (listRef.current) {
       listRef.current.scrollTop = listRef.current.scrollHeight;
@@ -144,7 +142,7 @@ export default function ChatList({ messages }) {
           <IoIosArrowBack
             className="text-2xl"
             onClick={() => {
-              dispatch(changeChat(""));
+              dispatch(changeChatUserId(""));
             }}
           />
           <Image
@@ -170,14 +168,17 @@ export default function ChatList({ messages }) {
         ref={listRef}
         className="w-full h-[calc(100vh-220px)] overflow-y-auto px-3"
       >
-        <ul className="h-full w-full">
-          {chatMessages.map((message) => (
-            <ChatItem key={message.messageId} message={message} />
-          ))}
-          {/* {chats.map((chat) => (
-            <ChatItem key={chat.id} chat={chat} />
-          ))} */}
-        </ul>
+        {chatMessages.length > 0 ? (
+          <ul className="h-full w-full">
+            {chatMessages.map((message, i) => (
+              <ChatItem key={message.messageId} message={message} />
+            ))}
+          </ul>
+        ) : (
+          <div className="flex flex-col h-full w-full items-center justify-center">
+            <p className="text-lg font-bold text-gray-700">No chats</p>
+          </div>
+        )}
       </div>
 
       <div className="w-full">

@@ -13,26 +13,29 @@ import { AiOutlineLike } from "react-icons/ai";
 import { BsCartPlus } from "react-icons/bs";
 import { MdOutlineSaveAlt } from "react-icons/md";
 
-export default function PostPage() {
+export default function ItemPage() {
   const params = useParams();
-  const [post, setPost] = useState(null);
-  const [user, setUser] = useState(null);
+  const [post, setPost] = useState({});
+  const [user, setUser] = useState({});
   const items = post?.items || [];
   const item = items[0] || {};
-  const postId = params.post_id;
-  const userId = params.user_id;
+  const post_id = params.post_id;
+  const user_id = params.user_id;
 
   useEffect(() => {
-    async function getPost() {
-      const post = await readPost(userId, postId);
+    async function getUser() {
       if (!post) return;
-      const user = await readUser(userId);
-      setPost(post);
-      setUser(user);
+      const result = await readUser(post.userId);
+      setUser(result);
+    }
+    async function getItem() {
+      const result = await readPost(post_id);
+      setPost(result);
+      getUser();
     }
 
     getPost();
-  }, [postId, userId]);
+  }, [post_id]);
 
   if (!post) return <div>No post</div>;
 

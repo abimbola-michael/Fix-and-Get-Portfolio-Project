@@ -9,6 +9,21 @@ interface Item {
   files: string;
 }
 
+export function getLocation(callback) {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        callback({ latitude, longitude });
+      },
+      (err) => {
+        callback({ error: err.message });
+      }
+    );
+  } else {
+    //console.log("Geolocation is not supported by this browser.");
+  }
+}
 export function haversineDistance(lat1, lon1, lat2, lon2) {
   // Convert latitude and longitude from degrees to radians
   const toRadians = (angle) => (angle * Math.PI) / 180;
@@ -113,7 +128,7 @@ export function listToStrings(strings: Array<string>) {
   return strings.join(",");
 }
 export function stringsToList(string: string) {
-  return string.split(",");
+  return string ? string.split(",") : [];
 }
 export function convertToCommaString(items: Array<any>, callback) {
   return items.map((item) => callback(item)).join(",");

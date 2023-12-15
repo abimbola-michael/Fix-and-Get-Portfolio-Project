@@ -18,15 +18,14 @@ export default function Search() {
   useEffect(() => {
     async function readAllUsers() {
       const users = await readUsers();
-      setUsers(
-        users.filter(
-          (user) =>
-            user.username?.includes(keyword) ||
-            user.name?.includes(keyword) ||
-            user.companyName?.includes(keyword)
-        )
-      );
-      //setUsers(users);
+      // setUsers(
+      //   users.filter(
+      //     (user) =>
+      //       user.name?.toLowerCase()?.includes(keyword.toLowerCase()) ||
+      //       user.businessName?.toLowerCase()?.includes(keyword.toLowerCase())
+      //   )
+      // );
+      setUsers(users);
     }
     readAllUsers();
   }, [keyword]);

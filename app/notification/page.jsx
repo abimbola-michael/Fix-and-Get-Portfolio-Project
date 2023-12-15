@@ -19,7 +19,7 @@ export default function Notification() {
       <Header />
       <p className="font-bold text-lg mx-4 my-2">Notifications</p>
       <div className="overflow-y-auto h-full w-full">
-        {notifications ? (
+        {notifications.length > 0 ? (
           <ul className="flex flex-col w-full h-full">
             {notifications.map((notification) => (
               <NotificationItem

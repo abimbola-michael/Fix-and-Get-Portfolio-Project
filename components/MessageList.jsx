@@ -58,9 +58,15 @@ export default function MessageList({ messages }) {
   return (
     <div className="w-full h-full overflow-y-auto">
       <ul className="">
-        {indMessages.map((message) => (
-          <MessageItem key={message.userId} message={message} />
-        ))}
+        {indMessages.length > 0 ? (
+          indMessages.map((message) => (
+            <MessageItem key={message.userId} message={message} />
+          ))
+        ) : (
+          <div className="flex flex-col h-full w-full items-center justify-center">
+            <p className="text-lg font-bold text-gray-700">No messages</p>
+          </div>
+        )}
       </ul>
     </div>
   );
