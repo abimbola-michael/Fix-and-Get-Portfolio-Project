@@ -24,6 +24,12 @@ export function getLocation(callback) {
     //console.log("Geolocation is not supported by this browser.");
   }
 }
+export function openGoogleMap(lat, lng) {
+  window.open(
+    `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`,
+    "_blank"
+  );
+}
 export function haversineDistance(lat1, lon1, lat2, lon2) {
   // Convert latitude and longitude from degrees to radians
   const toRadians = (angle) => (angle * Math.PI) / 180;
@@ -124,11 +130,11 @@ export function getUnmatchedObjects(firstObject, secondObject) {
 export function convertFileToPath(file: File) {
   return URL.createObjectURL(file);
 }
-export function listToStrings(strings: Array<string>) {
-  return strings.join(",");
+export function listToStrings(strings: Array<string>, sep?: string) {
+  return strings.length > 0 ? strings.join(sep || ",") : "";
 }
-export function stringsToList(string: string) {
-  return string ? string.split(",") : [];
+export function stringsToList(str: string, sep?: string) {
+  return str ? (sep && str.includes(sep) ? str.split(sep || ",") : [str]) : [];
 }
 export function convertToCommaString(items: Array<any>, callback) {
   return items.map((item) => callback(item)).join(",");

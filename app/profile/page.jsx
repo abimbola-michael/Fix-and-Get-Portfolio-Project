@@ -20,8 +20,12 @@ import { changeChatUserId } from "@/slices/appSlice";
 import { fixCategories, getCategories } from "@/utils/categories";
 import {
   getCategoriesAndItems,
+  getLocation,
   getUserCategories,
   getUserCategoriesItems,
+  haversineDistance,
+  openGoogleMap,
+  openMap,
   stringsToList,
 } from "@/utils/helpers";
 import App from "next/app";
@@ -53,6 +57,12 @@ export default function Profile() {
 
   const router = useRouter();
   const dispatch = useDispatch();
+  const [location, setLocation] = useState(null);
+  useEffect(() => {
+    getLocation((location) => {
+      setLocation(location);
+    });
+  }, []);
   useEffect(() => {
     async function getUserData() {
       const user = await readUserStats(userId);
@@ -101,6 +111,24 @@ export default function Profile() {
       )
     ]?.items;
   }
+  function openMap() {
+    if (!business?.businessLocation) return;
+    const businessLocation = stringsToList(business?.businessLocation);
+    openGoogleMap(businessLocation[0], businessLocation[1]);
+  }
+  function getDistance() {
+    if (!location || !business?.businessLocation) return "";
+    const businessLocation = stringsToList(business?.businessLocation);
+    const distance = haversineDistance(
+      location.latitude,
+      location.longitude,
+      businessLocation[0],
+      businessLocation[1]
+    );
+    return distance >= 1
+      ? `${distance.toFixed(2)} km`
+      : `${(distance * 1000).toFixed(2)} m`;
+  }
   return (
     <div className="h-screen w-full max-w-4xl mx-auto overflow-hidden flex flex-col">
       <Header />
@@ -115,14 +143,31 @@ export default function Profile() {
               width={150}
               height={150}
             />
-            <div className="px-3 flex flex-col items-center w-full">
+            <div className="px-3 flex flex-col items-center text-center w-full">
               <h2 className="font-semibold">{user?.name ?? ""}</h2>
-              {business?.businessName && (
-                <h1 className="font-bold text-2xl">{business?.businessName}</h1>
+              {(business?.businessName || business?.businessLogo) && (
+                <div className="flex items-center gap-2">
+                  {business?.businessLogo && (
+                    <Image
+                      src={business?.businessLogo}
+                      alt="Business Logo"
+                      width={40}
+                      height={40}
+                      className="w-[40px] h-[40px] rounded-full object-cover"
+                    />
+                  )}
+                  {business?.businessName && (
+                    <h1 className="font-bold text-2xl">
+                      {business?.businessName}
+                    </h1>
+                  )}
+                </div>
               )}
+
               {business?.businessDescription && (
                 <p className="text-md">{business?.businessDescription}</p>
               )}
+
               <div className="flex items-center gap-3">
                 {user?.fix?.length > 0 && (
                   <ProfileStats
@@ -318,10 +363,23 @@ export default function Profile() {
                     </div>
                   </ProfileDetail>
                 )}
-                <ProfileDetail
+                {/* <AppButton outline={true}>Get Directions</AppButton> */}
+
+                {business?.businessLocation && (
+                  <ProfileDetail
+                    name={"Business Location From you"}
+                    value={`${getDistance()} from you`}
+                    rightChild={
+                      <AppButton outline={true} onClick={openMap}>
+                        Get Directions
+                      </AppButton>
+                    }
+                  />
+                )}
+                {/* <ProfileDetail
                   name={"Business Name"}
                   value={business.businessName}
-                />
+                /> */}
                 <ProfileDetail
                   name={"Business Email"}
                   value={business.businessEmail}
@@ -338,10 +396,10 @@ export default function Profile() {
                   name={"Business Address"}
                   value={business.businessAddress}
                 />
-                <ProfileDetail
+                {/* <ProfileDetail
                   name={"Business Description"}
                   value={business.businessDescription}
-                />
+                /> */}
                 <ProfileDetail
                   name={"Business Category"}
                   value={business.businessCategory}

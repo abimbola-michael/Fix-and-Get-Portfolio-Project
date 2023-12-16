@@ -139,6 +139,33 @@ export async function addPost(post: {
     );
   }
 }
+
+export async function updateBusinessCertification(
+  files: Array<File>,
+  callback
+) {
+  const userId = getUId();
+  let completedCount = 0;
+  let data = { urls: [], fileNames: [] };
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const fileName = `file_${i}`;
+    uploadFileResumable(
+      ["businesses", userId, "businessCertifications", fileName],
+      file,
+      (url: string) => {
+        data.urls.push(url);
+        data.fileNames.push(fileName);
+        completedCount++;
+        if (completedCount === files.length) {
+          callback(listToStrings(data.urls));
+        }
+      },
+      (progress: number) => {}
+    );
+  }
+}
 export async function updateBusinessLocationPhotos(
   files: Array<File>,
   callback

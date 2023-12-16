@@ -65,7 +65,8 @@ export default function Carousel({
   indicators = "dots",
 }) {
   if (!mediaTypes) mediaTypes = Array(urls.length).fill("image");
-  const [currentIndex, setCurrentIndex] = useState(index);
+
+  const [currentIndex, setCurrentIndex] = useState(index < 0 ? 0 : index);
 
   const prevSlide = () => {
     const isFirstSlide = currentIndex === 0;
