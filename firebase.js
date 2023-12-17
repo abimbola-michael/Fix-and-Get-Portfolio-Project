@@ -276,7 +276,7 @@ export async function downloadFile(path) {
 export async function deleteFile(path) {
   try {
     const storageRef = ref(storage, path.join("/"));
-    return deleteObject(storageRef);
+    await deleteObject(storageRef);
   } catch (e) {}
 }
 export function pauseUpload(task) {

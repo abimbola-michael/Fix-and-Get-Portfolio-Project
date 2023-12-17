@@ -9,6 +9,8 @@ import LoginInput from "@/components/LoginInput";
 import ProfileDetail from "@/components/ProfileDetail";
 import { changePassword, comfirmPassword } from "@/firebase";
 import {
+  deleteMultpleFiles,
+  deleteSingleFile,
   getBusiness,
   getUser,
   updateBusinessCertification,
@@ -17,6 +19,8 @@ import {
   updateBusinessProfile,
   updateProfilePhoto,
   updateUserProfile,
+  uploadMultipleFiles,
+  uploadSingleFile,
 } from "@/firebase/firebase_api";
 import {
   convertFileToPath,
@@ -96,13 +100,13 @@ export default function EditProfile() {
   const [business, setBusiness] = useState(null);
   const userId = useSelector((state) => state.app.currentUserId);
   const router = useRouter();
-  const [certfiles, setCertFiles] = useState([]);
+  //const [certfiles, setCertFiles] = useState([]);
   const [certpaths, setCertPaths] = useState([]);
-  const [files, setFiles] = useState([]);
+  //const [files, setFiles] = useState([]);
   const [paths, setPaths] = useState([]);
-  const [file, setFile] = useState(null);
+  //const [file, setFile] = useState(null);
   const [path, setPath] = useState(null);
-  const [logofile, setLogoFile] = useState(null);
+  //const [logofile, setLogoFile] = useState(null);
   const [logopath, setLogoPath] = useState(null);
   const [fileUploadType, setFileUploadType] = useState("");
   const [isReplace, setIsReplace] = useState(false);
@@ -140,7 +144,8 @@ export default function EditProfile() {
     businessRole,
     businessWebsite,
     businessCertifications,
-    currentLocation,
+    businessOpenHours,
+    // currentLocation,
   };
   const times = Array.from({ length: 24 }, (_, i) => {
     //const hour =  i < 10 ? `0${i}` : i;
@@ -291,14 +296,15 @@ export default function EditProfile() {
         setLogoPath(business.businessLogo);
         setPaths(stringsToList(business.businessLocationPhotos));
         setCertPaths(stringsToList(business.businessCertifications));
-        setBusinessOpenHours(business?.businessOpenHours ?? "");
+        setBusinessOpenHours(business.businessOpenHours ?? "");
         convertBusinessHoursStringToObjects(business?.businessOpenHours ?? "");
       }
     }
     readUser();
   }, [userId]);
   function removeShopPhoto() {
-    setFiles((files) => files.filter((file, i) => i != fileIndex));
+    setFileIndex(fileIndex === paths.length - 1 ? fileIndex - 1 : fileIndex);
+    //setFiles((files) => files.filter((file, i) => i != fileIndex));
     setPaths((paths) => paths.filter((path, i) => i != fileIndex));
   }
   const handleButtonClick = () => {
@@ -316,10 +322,10 @@ export default function EditProfile() {
 
     const selectedPaths = selectedFiles.map((file) => convertFileToPath(file));
 
-    const newFiles = [...certfiles, ...selectedFiles];
+    //const newFiles = [...certfiles, ...selectedFiles];
     const newPaths = [...certpaths, ...selectedPaths];
 
-    setCertFiles(newFiles);
+    //setCertFiles(newFiles);
     setCertPaths(newPaths);
   };
   const handleFileChange = (event) => {
@@ -331,26 +337,26 @@ export default function EditProfile() {
         convertFileToPath(file)
       );
 
-      const newFiles = isReplace
-        ? files.map((file, i) => (fileIndex === i ? selectedFiles[0] : file))
-        : [...files, ...selectedFiles];
+      if (!isReplace) {
+        setFileIndex(paths.files + selectedFiles.length - 1);
+      }
+      // const newFiles = isReplace
+      //   ? files.map((file, i) => (fileIndex === i ? selectedFiles[0] : file))
+      //   : [...files, ...selectedFiles];
       const newPaths = isReplace
         ? paths.map((path, i) => (fileIndex === i ? selectedPaths[0] : path))
         : [...paths, ...selectedPaths];
 
-      setFiles(newFiles);
+      //setFiles(newFiles);
       setPaths(newPaths);
-      if (!isReplace) {
-        setFileIndex(newFiles.length - 1);
-      }
     } else {
       const selectedFile = event.target.files[0];
       if (selectedFile) {
         if (fileUploadType === "logo") {
-          setLogoFile(selectedFile);
+          //setLogoFile(selectedFile);
           setLogoPath(convertFileToPath(selectedFile));
         } else {
-          setFile(selectedFile);
+          //setFile(selectedFile);
           setPath(convertFileToPath(selectedFile));
         }
       }
@@ -372,76 +378,170 @@ export default function EditProfile() {
         if (user.email !== email) {
           await updateEmail(email);
         }
-        if (path && path != profilePhoto) {
-          updateProfilePhoto(file, async (url) => {
-            newUser.profilePhoto = url;
-            await updateUserProfile(user, newUser);
-            setProfilePhoto(url);
-            finish();
-          });
-        } else {
-          if (!path) {
+        if (path !== user.profilePhoto) {
+          if (path) {
+            uploadSingleFile(
+              ["users", userId],
+              path,
+              "profilePhoto",
+              async (url) => {
+                newUser.profilePhoto = url;
+                await updateUserProfile(user, newUser);
+                setProfilePhoto(url);
+                finish();
+              }
+            );
+          } else {
+            await deleteSingleFile(["users", userId], "profilePhoto");
             newUser.profilePhoto = "";
+            await updateUserProfile(user, newUser);
+            setProfilePhoto("");
+            finish();
           }
+        } else {
           await updateUserProfile(user, newUser);
           finish();
         }
       } else if (editType === "business") {
         async function uploadLogo(callback) {
-          if (logofile) {
-            updateBusinessLogo(logofile, async (url) => {
-              newBusiness.businessLogo = url;
-              callback();
-            });
-          } else {
-            if (logopath !== business.businessLogo) {
-              newBusiness.businessLogo = logopath;
-            }
-            callback();
-          }
-        }
-
-        async function uploadCertifications(callback) {
-          if (certfiles.length > 0) {
-            updateBusinessCertification(certfiles, async (url) => {
-              newBusiness.businessCertifications = listToStrings(
-                certpaths.filter((path) => path.startsWith("https://"))
+          if (logopath !== business.businessLogo) {
+            if (logopath) {
+              uploadSingleFile(
+                ["businesses", userId],
+                logopath,
+                "businessLogo",
+                async (url) => {
+                  newBusiness.businessLogo = url;
+                  callback();
+                }
               );
-              if (!newBusiness.businessCertifications) {
-                newBusiness.businessCertifications = url;
-              } else {
-                newBusiness.businessCertifications = `${newBusiness.businessCertifications},${url}`;
-              }
+            } else {
+              await deleteSingleFile(["businesses", userId], "businessLogo");
+              newBusiness.businessLogo = "";
               callback();
-            });
-          } else {
-            if (listToStrings(certpaths) !== business.businessCertifications) {
-              newBusiness.businessCertifications = listToStrings(certpaths);
             }
+          } else {
             callback();
           }
         }
-
         async function uploadLocationPhotos(callback) {
-          if (files.length > 0) {
-            updateBusinessLocationPhotos(files, async (url) => {
-              newBusiness.businessLocationPhotos = listToStrings(
-                paths.filter((path) => path.startsWith("https://"))
+          if (listToStrings(paths) !== business.businessLocationPhotos) {
+            const prevPaths = stringsToList(business.businessLocationPhotos);
+            const deletedFileNames = [];
+            const uploadFileNames = [];
+            const uploadPaths = [];
+
+            prevPaths.forEach((path, i) => {
+              if (!paths.includes(path)) {
+                deletedFileNames.push(`file_${i}`);
+              }
+            });
+
+            paths.forEach((path, i) => {
+              if (!path.startsWith("https://")) {
+                uploadFileNames.push(`file_${i}`);
+                uploadPaths.push(path);
+              }
+            });
+
+            if (deletedFileNames.length > 0) {
+              await deleteMultpleFiles(
+                ["businesses", userId, "businessLocationPhotos"],
+                deletedFileNames
               );
-              if (!newBusiness.businessLocationPhotos) {
-                newBusiness.businessLocationPhotos = url;
-              } else {
-                newBusiness.businessLocationPhotos = `${newBusiness.businessLocationPhotos},${url}`;
+            }
+            if (uploadPaths.length > 0) {
+              uploadMultipleFiles(
+                ["businesses", userId, "businessLocationPhotos"],
+                uploadPaths,
+                uploadFileNames,
+                async (urls) => {
+                  const values = uploadFileNames.map((v, i) => {
+                    return { fileName: v, url: urls[i] };
+                  });
+                  const newUrls = paths.map((path, i) =>
+                    path.startsWith("https://")
+                      ? path
+                      : values.find((v) => v.fileName === `file_${i}`).url
+                  );
+                  // console.log(`values`, values);
+                  // console.log(`newUrls`, newUrls);
+                  newBusiness.businessLocationPhotos = listToStrings(newUrls);
+                  // console.log(
+                  //   `businessLocationPhotos = ${businessLocationPhotos}`
+                  // );
+                  callback();
+                }
+              );
+            } else {
+              if (deletedFileNames.length > 0) {
+                newBusiness.businessLocationPhotos = listToStrings(
+                  paths.filter((path) => path.startsWith("https://"))
+                );
               }
               callback();
-            });
-          } else {
-            if (listToStrings(paths) !== business.businessLocationPhotos) {
-              newBusiness.businessLocationPhotos = listToStrings(paths);
             }
+          } else {
             callback();
           }
         }
+        async function uploadCertifications(callback) {
+          if (listToStrings(certpaths) !== business.businessCertifications) {
+            const prevPaths = stringsToList(business.businessCertifications);
+            const deletedFileNames = [];
+            const uploadFileNames = [];
+            const uploadPaths = [];
+
+            prevPaths.forEach((path, i) => {
+              if (!certpaths.includes(path)) {
+                deletedFileNames.push(`file_${i}`);
+              }
+            });
+
+            certpaths.forEach((path, i) => {
+              if (!path.startsWith("https://")) {
+                uploadFileNames.push(`file_${i}`);
+                uploadPaths.push(path);
+              }
+            });
+
+            if (deletedFileNames.length > 0) {
+              await deleteMultpleFiles(
+                ["businesses", userId, "businessCertifications"],
+                deletedFileNames
+              );
+            }
+            if (uploadPaths.length > 0) {
+              uploadMultipleFiles(
+                ["businesses", userId, "businessCertifications"],
+                uploadPaths,
+                uploadFileNames,
+                async (urls) => {
+                  const values = uploadFileNames.map((v, i) => {
+                    return { index: fileName, url: urls[i] };
+                  });
+                  const newUrls = certpaths.map((path, i) =>
+                    path.startsWith("https://")
+                      ? path
+                      : values.find((v) => v.fileName === `file_${i}`).url
+                  );
+                  newBusiness.businessCertifications = listToStrings(newUrls);
+                  callback();
+                }
+              );
+            } else {
+              if (deletedFileNames.length > 0) {
+                newBusiness.businessCertifications = listToStrings(
+                  certpaths.filter((path) => path.startsWith("https://"))
+                );
+              }
+              callback();
+            }
+          } else {
+            callback();
+          }
+        }
+
         uploadLocationPhotos(async () => {
           uploadCertifications(async () => {
             uploadLogo(async () => {
@@ -450,29 +550,6 @@ export default function EditProfile() {
             });
           });
         });
-
-        // if (files.length > 0) {
-        //   updateBusinessLocationPhotos(files, async (url) => {
-        //     if (!newBusiness.businessLocationPhotos) {
-        //       newBusiness.businessLocationPhotos = url;
-        //     } else {
-        //       newBusiness.businessLocationPhotos = `${newBusiness.businessLocationPhotos},${url}`;
-        //     }
-        //     uploadCertifications(async (url) => {});
-        //     uploadLogo(async () => {
-        //       await updateBusinessProfile(business, newBusiness);
-        //       finish();
-        //     });
-        //   });
-        // } else {
-        //   if (paths.length === 0) {
-        //     newBusiness.businessLocationPhotos = "";
-        //   }
-        //   uploadLogo(async () => {
-        //     await updateBusinessProfile(business, newBusiness);
-        //     finish();
-        //   });
-        // }
       } else if (editType === "password") {
         await changePassword(password);
         finish();
@@ -523,7 +600,7 @@ export default function EditProfile() {
             <div className="flex flex-col gap-3 items-center w-full">
               <Image
                 className="bg-gray-100 rounded-full shrink-0 aspect-square"
-                src={profilePhoto || path || "/images/profile_placeholder.png"}
+                src={path || "/images/profile_placeholder.png"}
                 alt="profile picture"
                 width={150}
                 height={150}

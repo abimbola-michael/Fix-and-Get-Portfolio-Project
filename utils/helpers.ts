@@ -130,11 +130,11 @@ export function getUnmatchedObjects(firstObject, secondObject) {
 export function convertFileToPath(file: File) {
   return URL.createObjectURL(file);
 }
-export function listToStrings(strings: Array<string>, sep?: string) {
-  return strings.length > 0 ? strings.join(sep || ",") : "";
+export function listToStrings(strings: Array<string>, sep: string = ",") {
+  return strings.length > 0 ? strings.join(sep) : "";
 }
-export function stringsToList(str: string, sep?: string) {
-  return str ? (sep && str.includes(sep) ? str.split(sep || ",") : [str]) : [];
+export function stringsToList(str: string, sep: string = ",") {
+  return str ? (str.includes(sep) ? str.split(sep) : [str]) : [];
 }
 export function convertToCommaString(items: Array<any>, callback) {
   return items.map((item) => callback(item)).join(",");

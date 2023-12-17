@@ -1,5 +1,6 @@
 import {
   auth,
+  deleteFile,
   getId,
   getRealtimeValue,
   getRealtimeValueChanges,
@@ -214,6 +215,79 @@ export async function updateBusinessLogo(file: File, callback) {
       callback(url);
     },
     (progress: number) => {}
+  );
+}
+export async function deleteSingleFile(path: Array<String>, fileName: string) {
+  await deleteFile([...path, fileName]);
+}
+
+export async function uploadSingleFile(
+  path: Array<String>,
+  file: File | string,
+  fileName: string,
+  callback,
+  progressCallback
+) {
+  const userId = getUId();
+  let uploadFile = null;
+  if (typeof file === "string") {
+    uploadFile = await getFileBlob(file);
+  } else {
+    uploadFile = file;
+  }
+  uploadFileResumable(
+    [...path, fileName],
+    uploadFile,
+    (url: string) => {
+      callback(url);
+    },
+    (progress: number) => {
+      progressCallback?.(progress);
+    }
+  );
+}
+export async function deleteMultpleFiles(
+  path: Array<String>,
+  fileNames: Array<string>
+) {
+  for (let i = 0; i < fileNames.length; i++) {
+    await deleteFile([...path, fileNames[i]]);
+  }
+}
+export async function uploadMultipleFiles(
+  path: Array<String>,
+  files: Array<File> | Array<string>,
+  fileNames: Array<string>,
+  callback,
+  progressCallback
+) {
+  if (files.length === 0) {
+    callback([]);
+    return;
+  }
+  let file = null;
+  if (typeof files[0] === "string") {
+    file = await getFileBlob(files[0]);
+  } else {
+    file = files[0];
+  }
+  uploadFileResumable(
+    [...path, fileNames[0]],
+    file,
+    (url: string) => {
+      uploadMultipleFiles(
+        path,
+        files.slice(1),
+        fileNames.slice(1),
+        (urls) => {
+          callback([url, ...urls]);
+        },
+        progressCallback
+      );
+    },
+    (progress: number) => {
+      progressCallback?.(progress, files.length);
+    }
   );
 }
 
