@@ -4,7 +4,7 @@ import FixGetInputItem from "./FixGetInputItem";
 
 export default function FixGetItemsList({ items, setItems }) {
   function updateItem(type, value, index) {
-    if (type === "files" && value.length === 0) {
+    if (type === "paths" && value.length === 0) {
       setItems((items) => items.filter((item, i) => index !== i));
       return;
     }

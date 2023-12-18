@@ -19,6 +19,7 @@ export default function SearchBar({ onSearch, searching, setSearching }) {
       <input
         className="w-full px-2 flex-1 text-sm focus:outline-none"
         placeholder="Search... "
+        autoFocus={true}
         value={text}
         onChange={(e) => setText(e.target.value)}
       />
@@ -37,6 +38,7 @@ export default function SearchBar({ onSearch, searching, setSearching }) {
           router.push(`/search?keyword=${text}`, "/search", { shallow: true });
           onSearch?.(text);
           setText("");
+          setSearching(false);
         }}
       />
     </div>

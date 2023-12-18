@@ -10,9 +10,12 @@ import PostItem from "@/components/PostItem";
 import ProfileDetail from "@/components/ProfileDetail";
 import ProfileStats from "@/components/ProfileStats";
 import {
+  addItems,
+  addPost,
   getBusiness,
   getUId,
   getUser,
+  readUser,
   readUserStats,
   toggleFollowUser,
 } from "@/firebase/firebase_api";
@@ -39,6 +42,8 @@ import { IoLogoWhatsapp } from "react-icons/io";
 import { FaTelegramPlane } from "react-icons/fa";
 import { IoCall } from "react-icons/io5";
 import VideoImageDisplay from "@/components/VideoImageDisplay";
+import { BsNutFill } from "react-icons/bs";
+import ProgressView from "@/components/ProgressView";
 
 export default function Profile() {
   // const [type, setType] = useState("fix");
@@ -52,12 +57,58 @@ export default function Profile() {
   const [business, setBusiness] = useState(null);
   const [loading, setLoading] = useState(true);
   const [displayDetails, setDisplayDetails] = useState(null);
+  const [progress, setProgress] = useState(null);
   const userId = params.get("userId");
+  let post = params.get("post");
+  let items = params.get("items");
+
+  if (post) {
+    post = JSON.parse(post);
+  }
+  if (items) {
+    items = JSON.parse(items);
+  }
+
   const myId = getUId();
 
   const router = useRouter();
+
   const dispatch = useDispatch();
   const [location, setLocation] = useState(null);
+
+  useEffect(() => {
+    if (post) {
+      setProgress(0);
+      console.log(`post: ${post}`);
+      addPost(
+        post,
+        (progress) => {
+          setProgress(progress);
+        },
+        (url) => {
+          setProgress(null);
+          router.push(`/profile?userId=${userId}`);
+        }
+      );
+      post = null;
+    }
+
+    if (items) {
+      setProgress(0);
+      console.log(`items: ${items}`);
+      addItems(
+        items,
+        (progress) => {
+          setProgress(progress);
+        },
+        (url) => {
+          setProgress(null);
+          router.push(`/profile?userId=${userId}`);
+        }
+      );
+      items = null;
+    }
+  }, []);
   useEffect(() => {
     getLocation((location) => {
       setLocation(location);
@@ -65,10 +116,23 @@ export default function Profile() {
   }, []);
   useEffect(() => {
     async function getUserData() {
-      const user = await readUserStats(userId);
+      const user = await readUser(userId);
       const business = await getBusiness(userId);
-      if (userId !== myId) {
-        setFollowing(user.followers.map((value) => value.id).includes(myId));
+      if (user) {
+        const { posts, get, fix, followers, following } = await readUserStats(
+          userId
+        );
+        console.log(
+          `posts: ${posts}, get: ${get}, fix: ${fix}, followers: ${followers}, following: ${following}`
+        );
+        user.posts = posts ?? [];
+        user.get = get ?? [];
+        user.fix = fix ?? [];
+        user.followers = followers ?? [];
+        user.following = following ?? [];
+        if (userId !== myId) {
+          setFollowing(user.followers.map((value) => value.id).includes(myId));
+        }
       }
       setUser(user);
       setBusiness(business);
@@ -76,12 +140,6 @@ export default function Profile() {
     }
     getUserData();
   }, [userId, myId]);
-  // const categories =
-  //   currentTab === "Fix"
-  //     ? fixCategories
-  //     : currentTab === "Get"
-  //     ? getCategories
-  //     : [];
 
   const callOptions = [
     { name: "Phone Call", logo: <IoCall />, link: "tel:" },
@@ -92,7 +150,7 @@ export default function Profile() {
   const categories = getUserCategories(
     currentTab === "Fix" ? user?.fix : user?.get
   );
-  const items = getUserCategoriesItems(
+  const categoryItems = getUserCategoriesItems(
     currentTab === "Fix" ? user?.fix : user?.get,
     currentCategory,
     currentSubCategory,
@@ -132,6 +190,9 @@ export default function Profile() {
   return (
     <div className="h-screen w-full max-w-4xl mx-auto overflow-hidden flex flex-col">
       <Header />
+      {progress !== null && progress > 0 && (
+        <ProgressView progress={progress} />
+      )}
       <p className="font-bold text-lg px-4 my-2">Profile</p>
       <div className="overflow-y-auto">
         <div className="flex flex-col gap-3 items-center max-w-4xl">
@@ -212,7 +273,7 @@ export default function Profile() {
                     toggleFollowUser(userId, following, setFollowing, setUser);
                   }}
                 >
-                  Follow
+                  {following ? "Following" : "Follow"}
                 </AppButton>
                 <AppButton
                   outline={true}
@@ -450,55 +511,54 @@ export default function Profile() {
             )} */}
             {(currentTab === "Fix" || currentTab === "Get") && (
               <ul className="flex gap-3 flex-wrap">
-                {getCategoriesAndItems(items, "category", currentCategory).map(
-                  (result) => (
-                    <li
-                      key={result.name}
-                      className="flex flex-col gap-2 w-full"
-                    >
-                      <h1 className="text-xl font-bold">{result.name}</h1>
-                      <ul className="flex gap-3 flex-wrap">
-                        {getCategoriesAndItems(
-                          result.items,
-                          "subCategory",
-                          currentSubCategory
-                        ).map((result) => (
-                          <li
-                            key={result.name}
-                            className="flex flex-col gap-2 w-full"
-                          >
-                            <h1 className="text-lg font-bold">{result.name}</h1>
-                            <ul className="flex gap-3 flex-wrap">
-                              {getCategoriesAndItems(
-                                result.items,
-                                "title",
-                                title
-                              ).map((result) => (
-                                <li
-                                  key={result.name}
-                                  className="flex flex-col gap-2 w-full"
-                                >
-                                  <h1 className="text-md font-semibold">
-                                    {result.name}
-                                  </h1>
-                                  <ul className="flex gap-3 flex-wrap">
-                                    {result.items.map((item) => (
-                                      <FixGetItem
-                                        key={item.id}
-                                        item={item}
-                                        isFeed={true}
-                                      />
-                                    ))}
-                                  </ul>
-                                </li>
-                              ))}
-                            </ul>
-                          </li>
-                        ))}
-                      </ul>
-                    </li>
-                  )
-                )}
+                {getCategoriesAndItems(
+                  categoryItems,
+                  "category",
+                  currentCategory
+                ).map((result) => (
+                  <li key={result.name} className="flex flex-col gap-2 w-full">
+                    <h1 className="text-xl font-bold">{result.name}</h1>
+                    <ul className="flex gap-3 flex-wrap">
+                      {getCategoriesAndItems(
+                        result.items,
+                        "subCategory",
+                        currentSubCategory
+                      ).map((result) => (
+                        <li
+                          key={result.name}
+                          className="flex flex-col gap-2 w-full"
+                        >
+                          <h1 className="text-lg font-bold">{result.name}</h1>
+                          <ul className="flex gap-3 flex-wrap">
+                            {getCategoriesAndItems(
+                              result.items,
+                              "title",
+                              title
+                            ).map((result) => (
+                              <li
+                                key={result.name}
+                                className="flex flex-col gap-2 w-full"
+                              >
+                                <h1 className="text-md font-semibold">
+                                  {result.name}
+                                </h1>
+                                <ul className="flex gap-3 flex-wrap">
+                                  {result.items.map((item) => (
+                                    <FixGetItem
+                                      key={item.id}
+                                      item={item}
+                                      isFeed={true}
+                                    />
+                                  ))}
+                                </ul>
+                              </li>
+                            ))}
+                          </ul>
+                        </li>
+                      ))}
+                    </ul>
+                  </li>
+                ))}
               </ul>
             )}
           </div>

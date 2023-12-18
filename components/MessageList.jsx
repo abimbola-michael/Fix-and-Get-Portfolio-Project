@@ -5,6 +5,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import MessageItem from "./MessageItem";
 import { getIndividualMessages } from "@/utils/helpers";
+import CenterMessage from "./CenterMessage";
 
 // const users = [
 //   {
@@ -63,9 +64,7 @@ export default function MessageList({ messages }) {
             <MessageItem key={message.userId} message={message} />
           ))
         ) : (
-          <div className="flex flex-col h-full w-full items-center justify-center">
-            <p className="text-lg font-bold text-gray-700">No messages</p>
-          </div>
+          <CenterMessage message={"No Messages"} />
         )}
       </ul>
     </div>

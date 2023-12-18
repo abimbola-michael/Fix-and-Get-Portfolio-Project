@@ -5,28 +5,26 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 
-export default function UserItem({
-  user: {
+export default function BusinessItem({
+  business: {
     userId,
-    name,
-    email,
-    phone,
-    profilePhoto,
-    coverPhoto,
-    timeJoined,
-    lastSeen,
+    businessName,
+    businessEmail,
+    businessPhone,
+    businessCallPhone,
+    businessLogo,
+    businessAddress,
+    businessLocation,
+    businessLocationPhotos,
+    businessDescription,
+    businessCategory,
+    businessRole,
+    businessWebsite,
+    businessCertifications,
+    businessOpenHours,
   },
   onClick,
 }) {
-  const dispatch = useDispatch();
-  // const [user, setUser] = useState(null);
-  // useEffect(() => {
-  //   async function readUser() {
-  //     const user = await getUser(userId);
-  //     setUser(user);
-  //   }
-  //   readUser();
-  // }, [userId]);
   return (
     <li
       key={userId}
@@ -35,7 +33,7 @@ export default function UserItem({
     >
       <Image
         src={profilePhoto || "/images/mechanic.jpg"}
-        alt={`${name} Profile Photo`}
+        alt={`${businessName} Profile Photo`}
         placeholder="blur"
         blurDataURL="/images/profile_placeholder.png"
         width={50}
@@ -43,10 +41,10 @@ export default function UserItem({
         className="rounded-full aspect-square cover shrink-0"
       />
       <div className="grow flex flex-col">
-        <p className="text-md">{name}</p>
-        {/* <p className="text-sm text-gray-700 text-ellipsis line-clamp-1">
-          {username}
-        </p> */}
+        <p className="text-md">{businessName}</p>
+        <p className="text-sm text-gray-700 text-ellipsis line-clamp-3">
+          {businessDescription}
+        </p>
       </div>
     </li>
   );

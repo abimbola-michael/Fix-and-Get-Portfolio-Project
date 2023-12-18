@@ -3,18 +3,24 @@ import { initializeApp } from "firebase/app";
 // import { getAnalytics } from "firebase/analytics";
 import {
   addDoc,
+  and,
   collection,
   deleteDoc,
   doc,
+  endAt,
+  endBefore,
   getDoc,
   getDocs,
   getFirestore,
   limit,
   limitToLast,
   onSnapshot,
+  or,
   orderBy,
   query,
   setDoc,
+  startAfter,
+  startAt,
   updateDoc,
   where,
 } from "firebase/firestore";
@@ -157,19 +163,88 @@ export function getRealtimeValue(path, callback) {
     return unSub;
   } catch (e) {}
 }
-
-export async function getValues(path) {
+function getConstraintFromQueries(queries) {
+  const constraints = [];
+  if (!queries) return constraints;
+  Object.entries(queries).forEach(([key, value]) => {
+    switch (key) {
+      case "orderBy":
+        constraints.push(orderBy(value[0], value[1]));
+        break;
+      case "limit":
+        constraints.push(limit(value));
+        break;
+      case "limitToLast":
+        constraints.push(limitToLast(value));
+        break;
+      case "where":
+        constraints.push(where(value[0], value[1], value[2]));
+        break;
+      case "startAt":
+        constraints.push(startAt(value));
+        break;
+      case "startAfter":
+        constraints.push(startAfter(value));
+        break;
+      case "endAt":
+        constraints.push(endAt(value));
+        break;
+      case "endBefore":
+        constraints.push(endBefore(value));
+        break;
+      case "or":
+        constraints.push(or(...getConstraintFromQueries(value)));
+        break;
+      case "and":
+        constraints.push(and(...getConstraintFromQueries(value)));
+        break;
+      default:
+        break;
+    }
+    // if (key === "orderBy") {
+    //   constraints.push(orderBy(value[0], value[1]));
+    // } else if (key === "limit") {
+    //   constraints.push(limit(value));
+    // } else if (key === "limitToLast") {
+    //   constraints.push(limitToLast(value));
+    // } else if (key === "where") {
+    //   constraints.push(where(value[0], value[1], value[2]));
+    // } else if (key === "startAt") {
+    //   constraints.push(startAt(value));
+    // } else if (key === "startAfter") {
+    //   constraints.push(startAfter(value));
+    // } else if (key === "endAt") {
+    //   constraints.push(endAt(value));
+    // } else if (key === "endBefore") {
+    //   constraints.push(endBefore(value));
+    // } else if (key === "or") {
+    //   constraints.push(or(...getConstraintFromQueries(value)));
+    // } else if (key === "and") {
+    //   constraints.push(and(...getConstraintFromQueries(value)));
+    // }
+  });
+  return constraints;
+}
+export async function getValues(path, queries) {
   try {
-    const querySnapshot = await getDocs(collection(db, path.join("/")));
+    const querySnapshot = await getDocs(
+      query(
+        collection(db, path.join("/")),
+        ...getConstraintFromQueries(queries)
+      )
+    );
     return querySnapshot?.docs?.map((doc) => doc.data());
   } catch (e) {
     return [];
   }
 }
-export function getRealtimeValues(path, callback) {
+export function getRealtimeValues(path, queries, callback) {
   try {
     const unSub = onSnapshot(
-      collection(db, path.join("/")),
+      query(
+        collection(db, path.join("/")),
+        ...getConstraintFromQueries(queries)
+      ),
       (querySnapshot) => {
         if (!querySnapshot?.docs) {
           callback([]);
@@ -182,10 +257,13 @@ export function getRealtimeValues(path, callback) {
   } catch (e) {}
 }
 
-export function getRealtimeValueChanges(path, callback) {
+export function getRealtimeValueChanges(path, queries, callback) {
   try {
     const unSub = onSnapshot(
-      collection(db, path.join("/")),
+      query(
+        collection(db, path.join("/")),
+        ...getConstraintFromQueries(queries)
+      ),
       (querySnapshot) => {
         if (!querySnapshot?.docChanges()) {
           callback([]);
@@ -201,24 +279,24 @@ export function getRealtimeValueChanges(path, callback) {
     return unSub;
   } catch (e) {}
 }
-export async function getValuesWithCond(
-  path,
-  { whereClause, orderByClause, limitClause, limitToLastClause }
-) {
-  try {
-    const querySnapshot = await getDocs(
-      query(
-        collection(db, path.join("/")),
-        where(whereClause[0], whereClause[1], whereClause[2]),
-        orderBy(orderByClause[0], orderByClause[1]),
-        limitClause ? limit(limitClause) : limitToLast(limitToLastClause)
-      )
-    );
-    return querySnapshot.docs.map((doc) => doc.data());
-  } catch (e) {
-    return;
-  }
-}
+// export async function getValuesWithCond(
+//   path,
+//   { whereClause, orderByClause, limitClause, limitToLastClause }
+// ) {
+//   try {
+//     const querySnapshot = await getDocs(
+//       query(
+//         collection(db, path.join("/")),
+//         where(whereClause[0], whereClause[1], whereClause[2]),
+//         orderBy(orderByClause[0], orderByClause[1]),
+//         limitClause ? limit(limitClause) : limitToLast(limitToLastClause)
+//       )
+//     );
+//     return querySnapshot.docs.map((doc) => doc.data());
+//   } catch (e) {
+//     return;
+//   }
+// }
 
 export async function uploadFile(path, file) {
   try {

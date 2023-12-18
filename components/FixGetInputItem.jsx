@@ -13,10 +13,8 @@ export default function FixGetInputItem({ item, index, onChange }) {
   // const [file, setFile] = useState(null);
   // const [mediaType, setMediaType] = useState("image");
 
-  const [files, setFiles] = useState(item.files);
-  const [paths, setPaths] = useState(() =>
-    item.files.map((file) => convertFileToPath(file))
-  );
+  //const [files, setFiles] = useState(item.files);
+  const [paths, setPaths] = useState(item.paths);
 
   const [name, setName] = useState(item.name);
   const [desc, setDesc] = useState(item.desc);
@@ -25,22 +23,22 @@ export default function FixGetInputItem({ item, index, onChange }) {
   const [negotiable, setNegotiable] = useState(item.negotiable);
 
   function removeFile(index) {
-    const newFiles = [...files];
+    //const newFiles = [...files];
     const newPaths = [...paths];
-    newFiles.splice(index, 1);
+    //newFiles.splice(index, 1);
     newPaths.splice(index, 1);
-    setFiles(newFiles);
+    //setFiles(newFiles);
     setPaths(newPaths);
-    onChange("files", newFiles);
+    onChange("paths", newPaths);
   }
   function replaceFile(index, file) {
-    const newFiles = [...files];
+    //const newFiles = [...files];
     const newPaths = [...paths];
-    newFiles[index] = file;
+    //newFiles[index] = file;
     newPaths[index] = convertFileToPath(file);
-    setFiles(newFiles);
+    //setFiles(newFiles);
     setPaths(newPaths);
-    onChange("files", newFiles);
+    onChange("paths", newPaths);
   }
 
   const handleFileChange = (event) => {
@@ -52,11 +50,11 @@ export default function FixGetInputItem({ item, index, onChange }) {
 
     const selectedPaths = selectedFiles.map((file) => convertFileToPath(file));
 
-    const newFiles = [...files, ...selectedFiles];
+    //const newFiles = [...files, ...selectedFiles];
     const newPaths = [...paths, ...selectedPaths];
 
-    setFiles(newFiles);
-    onChange("files", newFiles);
+    //setFiles(newFiles);
+    onChange("paths", newPaths);
     setPaths(newPaths);
   };
   const handleButtonClick = () => {
@@ -69,9 +67,8 @@ export default function FixGetInputItem({ item, index, onChange }) {
         <div
           className="w-full h-[250px] bg-cover bg-center flex flex-wrap"
           style={{
-            backgroundImage: files.isEmpty
-              ? "url(/images/img_placeholder.png)"
-              : "",
+            backgroundImage:
+              paths.length === 0 ? "url(/images/img_placeholder.png)" : "",
           }}
         >
           {paths &&
@@ -80,9 +77,9 @@ export default function FixGetInputItem({ item, index, onChange }) {
                 <div
                   key={path}
                   className={`relative p-1 ${
-                    files.length < 3 ? "h-full" : "h-[50%]"
+                    paths.length < 3 ? "h-full" : "h-[50%]"
                   } ${
-                    files.length == 1 || (index === 2 && files.length === 3)
+                    paths.length == 1 || (index === 2 && paths.length === 3)
                       ? "w-full"
                       : "w-[50%]"
                   }`}

@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import FixGetItemsList from "@/components/FixGetItemsList";
 import { IoMdCloseCircle } from "react-icons/io";
+import { useSelector } from "react-redux";
 
 const images = Array.from({ length: 10 }, (v, i) => {
   return { url: "/images/laptop.jpg", type: "image", id: i.toString() };
@@ -20,9 +21,9 @@ export default function AddPost() {
   const [currentSubCategory, setCurrentSubCategory] = useState("");
   const [title, setTitle] = useState("");
   const [caption, setCaption] = useState("");
-  const [files, setFiles] = useState([]);
+  const userId = useSelector((state) => state.app.currentUserId);
+  //const [files, setFiles] = useState([]);
   const [paths, setPaths] = useState([]);
-
   const router = useRouter();
 
   const categories = type === "fix" ? fixCategories : getCategories;
@@ -32,23 +33,23 @@ export default function AddPost() {
     subCategory: currentSubCategory,
     title,
     caption,
-    files,
+    paths,
   };
   const fileInputRef = useRef(null);
   function removeFile(index) {
-    const newFiles = [...files];
+    //const newFiles = [...files];
     const newPaths = [...paths];
-    newFiles.splice(index, 1);
+    //newFiles.splice(index, 1);
     newPaths.splice(index, 1);
-    setFiles(newFiles);
+    //setFiles(newFiles);
     setPaths(newPaths);
   }
   function replaceFile(index, file) {
-    const newFiles = [...files];
+    //const newFiles = [...files];
     const newPaths = [...paths];
-    newFiles[index] = file;
+    //newFiles[index] = file;
     newPaths[index] = convertFileToPath(file);
-    setFiles(newFiles);
+    //setFiles(newFiles);
     setPaths(newPaths);
   }
   const handleButtonClick = () => {
@@ -63,10 +64,10 @@ export default function AddPost() {
 
     const selectedPaths = selectedFiles.map((file) => convertFileToPath(file));
 
-    const newFiles = [...files, ...selectedFiles];
+    //const newFiles = [...files, ...selectedFiles];
     const newPaths = [...paths, ...selectedPaths];
 
-    setFiles(newFiles);
+    //setFiles(newFiles);
     setPaths(newPaths);
   };
 
@@ -82,6 +83,7 @@ export default function AddPost() {
       )
     ]?.items;
   }
+
   return (
     <div className="h-screen w-full max-w-4xl mx-auto overflow-hidden flex flex-col relative">
       <Header />
@@ -181,16 +183,6 @@ export default function AddPost() {
             </ul>
           )}
         </div>
-        {/* <h1 className="font-bold text-lg py-4">Currency</h1>
-        <select
-          className={`focus:outline-none text-md px-4 py-2 bg-transparent rounded-full text-blue-500 font-bold border-2 border-blue-500 whitespace-nowrap`}
-          value={currency}
-          onChange={(e) => setCurrency(e.target.value)}
-        >
-          <option value="NGN">NGN</option>
-          <option value="USD">USD</option>
-          <option value="EUR">EUR</option>
-        </select> */}
 
         <h1 className="font-bold text-lg py-4">Photos/Videos</h1>
         <div className="w-full flex flex-col items-start gap-4">
@@ -244,8 +236,12 @@ export default function AddPost() {
       <div className="absolute bottom-4 right-4">
         <AppButton
           onClick={() => {
-            addPost(post);
-            router.back();
+            router.push(
+              `/profile?userId=${userId}&post=${JSON.stringify(post)}`
+            );
+            // addPost(post, (url) => {
+            //   router.back();
+            // });
           }}
         >
           Post

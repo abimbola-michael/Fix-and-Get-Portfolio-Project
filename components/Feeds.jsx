@@ -1,29 +1,24 @@
 import Post from "@/app/post/page";
 import React, { useEffect, useState } from "react";
 import PostItem from "./PostItem";
-import { readPosts, readRealtimePosts } from "@/firebase/firebase_api";
+import { readAll, readPosts, readRealtimePosts } from "@/firebase/firebase_api";
 
 export default function Feeds() {
   const [posts, setPosts] = useState([]);
   useEffect(() => {
-    //const unSub = readRealtimePosts(setPosts);
     async function getPosts() {
-      const result = await readPosts();
-      //console.log(`results: ${result}`);
-      setPosts(result);
+      const posts = await readAll("posts");
+      setPosts(posts);
     }
     getPosts();
-    return () => {
-      //   if (typeof unSub === "function") {
-      //     unSub();
-      //   }
-    };
   }, []);
   return (
-    <ul className="w-full">
-      {posts.map((post) => (
-        <PostItem key={post.id} post={post} />
-      ))}
-    </ul>
+    <div className="w-full">
+      <ul className="w-full flex flex-col">
+        {posts.map((post) => (
+          <PostItem key={post.id} post={post} />
+        ))}
+      </ul>
+    </div>
   );
 }

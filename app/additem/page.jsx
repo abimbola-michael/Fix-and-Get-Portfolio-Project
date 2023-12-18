@@ -4,11 +4,12 @@ import AppInput from "@/components/AppInput";
 import Header from "@/components/Header";
 import { addItems, addPost } from "@/firebase/firebase_api";
 import { fixCategories, getCategories } from "@/utils/categories";
-import { convertToCommaString } from "@/utils/helpers";
+import { convertFileToPath, convertToCommaString } from "@/utils/helpers";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import FixGetItemsList from "@/components/FixGetItemsList";
+import { useSelector } from "react-redux";
 
 export default function AddItem() {
   const [type, setType] = useState("fix");
@@ -17,6 +18,7 @@ export default function AddItem() {
   const [title, setTitle] = useState("");
   const [currency, setCurrency] = useState("NGN");
   const [items, setItems] = useState([]);
+  const userId = useSelector((state) => state.app.currentUserId);
   const router = useRouter();
 
   // const name = convertToCommaString(items, (item) => item.name);
@@ -31,6 +33,7 @@ export default function AddItem() {
     // const selectedFile = event.target.files[0];
     const selectedFiles = Array.from(event.target.files);
     if (selectedFiles.isEmpty) return;
+    const selectedPaths = selectedFiles.map((file) => convertFileToPath(file));
     setItems((items) => [
       ...items,
       {
@@ -43,7 +46,8 @@ export default function AddItem() {
         price: "",
         discPrice: "",
         negotiable: false,
-        files: selectedFiles,
+        //files: selectedFiles,
+        paths: selectedPaths,
         currency,
       },
     ]);
@@ -193,8 +197,11 @@ export default function AddItem() {
       <div className="absolute bottom-4 right-4">
         <AppButton
           onClick={() => {
-            addItems(items);
-            router.back();
+            router.push(
+              `/profile?userId=${userId}&items=${JSON.stringify(items)}`
+            );
+            // addItems(items);
+            // router.back();
           }}
         >
           Post

@@ -12,6 +12,7 @@ import {
   updateValue,
   uploadFileResumable,
 } from "@/firebase";
+import { POSTS_SIZE } from "@/utils/constants";
 import {
   checkIfObjectKeysAndValuesMatch,
   getFileBlob,
@@ -36,109 +37,165 @@ export async function addItems(
     price: string;
     discPrice: string;
     negotiable: boolean;
-    files: Array<File>;
-  }>
+    paths: Array<string>;
+  }>,
+  progressCallback: (progress: number) => void,
+  callback: (url: string) => void
 ) {
-  //let completedCount = 0;
-  let completedCount = Array.from({ length: items.length }, (v, i) => 0);
-  let datas = Array.from({ length: items.length }, (v, i) => {
-    return { urls: [], mediaTypes: [], fileNames: [] };
-  });
-
-  const postItems = [];
   const userId = getUId();
-  const type = items[0].type;
-  //const node = type === "fix" ? "fixers" : "sellers";
-
-  for (let i = 0; i < items.length; i++) {
-    const files = items[i].files;
-    const id = getId(["users", userId, type]);
-
-    for (let j = 0; j < files.length; j++) {
-      const file = files[j];
-      const mediaType = file.type.startsWith("image") ? "image" : "video";
-      const fileName = `file_${j}`;
-
-      uploadFileResumable(
-        ["users", userId, type, id, fileName],
-        file,
-        (url: string) => {
-          const time = Date.now();
-          datas[i].urls.push(url);
-          datas[i].mediaTypes.push(mediaType);
-          datas[i].fileNames.push(fileName);
-
-          const newItem = {
-            ...items[i],
-            userId,
-            id,
-            url: listToStrings(datas[i].urls),
-            mediaType: listToStrings(datas[i].mediaTypes),
-            fileName: listToStrings(datas[i].fileNames),
-            time,
-            available: true,
-          };
-          //delete newItem["mediaTypes"];
-          delete newItem["files"];
-          completedCount[i]++;
-          if (completedCount[i] === files.length) {
-            postItems.push(newItem);
-            setValue(["users", userId, type, id], newItem);
-          }
-        },
-        (progress: number) => {}
-      );
-    }
-  }
-}
-
-export async function addPost(post: {
-  type: string;
-  category: string;
-  subCategory: string;
-  title: string;
-  caption: string;
-  files: Array<File>;
-}) {
   let completedCount = 0;
-  let data = { urls: [], mediaTypes: [], fileNames: [] };
-
-  const userId = getUId();
-  const id = getId(["users", userId, "posts"]);
-  const files = post.files;
-  for (let j = 0; j < files.length; j++) {
-    const file = files[j];
-    const mediaType = file.type.startsWith("image") ? "image" : "video";
-    const fileName = `file_${j}`;
-
-    uploadFileResumable(
-      ["users", userId, "posts", id, fileName],
-      file,
-      (url: string) => {
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    const paths = item.paths;
+    const type = item.type;
+    const id = getId(["users", userId, type]);
+    const fileNames = paths.map((path, index) => `file_${index}`);
+    const mediaTypes = paths.map((path) =>
+      path.startsWith("image") ? "image" : "video"
+    );
+    uploadMultipleFiles(
+      ["posts", id],
+      paths,
+      fileNames,
+      async (urls: Array<string>) => {
         const time = Date.now();
-        data.urls.push(url);
-        data.mediaTypes.push(mediaType);
-        data.fileNames.push(fileName);
-
-        const newPost = {
-          ...post,
+        const url = listToStrings(urls);
+        const mediaType = listToStrings(mediaTypes);
+        const fileName = listToStrings(fileNames);
+        delete item["paths"];
+        const newItem = {
+          ...item,
           userId,
           id,
-          url: listToStrings(data.urls),
-          mediaType: listToStrings(data.mediaTypes),
-          fileName: listToStrings(data.fileNames),
+          url,
+          mediaType,
+          fileName,
           time,
         };
-        //delete newItem["mediaTypes"];
-        delete post["files"];
+        await setValue([type, id], newItem);
+        await setValue(["users", userId, type, id], {
+          id: id,
+          time: time,
+        });
         completedCount++;
-        if (completedCount === files.length) {
-          setValue(["users", userId, "posts", id], newPost);
+        if (completedCount === items.length) {
+          callback(url);
         }
       },
-      (progress: number) => {}
+      progressCallback
     );
   }
+  //let completedCount = 0;
+  // let completedCount = Array.from({ length: items.length }, (v, i) => 0);
+  // let datas = Array.from({ length: items.length }, (v, i) => {
+  //   return { urls: [], mediaTypes: [], fileNames: [] };
+  // });
+
+  // const postItems = [];
+  // const userId = getUId();
+  // const type = items[0].type;
+  // //const node = type === "fix" ? "fixers" : "sellers";
+
+  // for (let i = 0; i < items.length; i++) {
+  //   const files = items[i].files;
+  //   const id = getId(["users", userId, type]);
+
+  //   for (let j = 0; j < files.length; j++) {
+  //     const file = files[j];
+  //     const mediaType = file.type.startsWith("image") ? "image" : "video";
+  //     const fileName = `file_${j}`;
+
+  //     uploadFileResumable(
+  //       ["users", userId, type, id, fileName],
+  //       file,
+  //       async (url: string) => {
+  //         const time = Date.now();
+  //         datas[i].urls.push(url);
+  //         datas[i].mediaTypes.push(mediaType);
+  //         datas[i].fileNames.push(fileName);
+
+  //         const newItem = {
+  //           ...items[i],
+  //           userId,
+  //           id,
+  //           url: listToStrings(datas[i].urls),
+  //           mediaType: listToStrings(datas[i].mediaTypes),
+  //           fileName: listToStrings(datas[i].fileNames),
+  //           time,
+  //           available: true,
+  //         };
+  //         //delete newItem["mediaTypes"];
+  //         delete newItem["files"];
+  //         completedCount[i]++;
+  //         if (completedCount[i] === files.length) {
+  //           postItems.push(newItem);
+  //           await setValue([type, id], newItem);
+  //           await setValue(["users", userId, type, id], { id: id, time: time });
+  //         }
+  //       },
+  //       (progress: number) => {}
+  //     );
+  //   }
+  // }
+}
+export async function deleteItem(userId: string, id: string, type: string) {
+  await deleteSingleFile([type, id], "file_0");
+  await removeValue(["users", userId, type, id]);
+  return removeValue([type, id]);
+}
+export async function deletePost(userId: string, id: string) {
+  await deleteSingleFile(["posts", id], "file_0");
+  await removeValue(["users", userId, "posts", id]);
+  return removeValue(["posts", id]);
+}
+
+export async function addPost(
+  post: {
+    type: string;
+    category: string;
+    subCategory: string;
+    title: string;
+    caption: string;
+    paths: Array<string>;
+  },
+  progressCallback: (progress: number) => void,
+  callback: (url: string) => void
+) {
+  const userId = getUId();
+  const id = getId(["users", userId, "posts"]);
+  const paths = post.paths;
+  const fileNames = paths.map((path, index) => `file_${index}`);
+  const mediaTypes = paths.map((path) =>
+    path.startsWith("image") ? "image" : "video"
+  );
+  uploadMultipleFiles(
+    ["posts", id],
+    paths,
+    fileNames,
+    async (urls: Array<string>) => {
+      const time = Date.now();
+      const url = listToStrings(urls);
+      const mediaType = listToStrings(mediaTypes);
+      const fileName = listToStrings(fileNames);
+      delete post["paths"];
+      const newPost = {
+        ...post,
+        userId,
+        id,
+        url,
+        mediaType,
+        fileName,
+        time,
+      };
+      await setValue(["posts", id], newPost);
+      await setValue(["users", userId, "posts", id], {
+        id: id,
+        time: time,
+      });
+      callback(url);
+    },
+    progressCallback
+  );
 }
 
 export async function updateBusinessCertification(
@@ -295,52 +352,23 @@ export async function getUser(userId: string) {
   return getValue(["users", userId]);
 }
 export async function readPostStats(userId: string, postId: string) {
-  const likes = await getValues(["users", userId, "posts", postId, "likes"]);
-  const comments = await getValues([
-    "users",
-    userId,
-    "posts",
-    postId,
-    "comments",
-  ]);
-  const reposts = await getValues([
-    "users",
-    userId,
-    "posts",
-    postId,
-    "reposts",
-  ]);
+  const likes = await getValues(["posts", postId, "likes"]);
+  const comments = await getValues(["posts", postId, "comments"]);
+  const reposts = await getValues(["posts", postId, "reposts"]);
   return { likes, comments, reposts };
 }
 export async function readUserStats(userId: string) {
-  const user = await getValue(["users", userId]);
-  const posts = await getValues(["users", userId, "posts"]);
-  const get = await getValues(["users", userId, "get"]);
-  const fix = await getValues(["users", userId, "fix"]);
+  const postIds = await getValues(["users", userId, "posts"]);
+  const getIds = await getValues(["users", userId, "get"]);
+  const fixIds = await getValues(["users", userId, "fix"]);
+  const posts = await readPostsFromIds(postIds);
+  const get = await readFixOrGetFromIds(getIds, "get");
+  const fix = await readFixOrGetFromIds(fixIds, "fix");
   const followers = await getValues(["users", userId, "followers"]);
   const following = await getValues(["users", userId, "following"]);
-  if (!user) return null;
-  user.posts = posts ?? [];
-  user.get = get ?? [];
-  user.fix = fix ?? [];
-  user.followers = followers ?? [];
-  user.following = following ?? [];
-  // const likes = getValues(["users", userId, "likes"]);
-  // const comments = getValues(["users", userId, "comments"]);
-  // const shares = getValues(["users", userId, "shares"]);
-  // const views = getValues(["users", userId, "views"]);
-  // const saved = getValues(["users", userId, "saved"]);
-  // const messages = getValues(["users", userId, "messages"]);
-  // const notifications = getValues(["users", userId, "notifications"]);
-  // const reviews = getValues(["users", userId, "reviews"]);
-  // const ratings = getValues(["users", userId, "ratings"]);
-  // const orders = getValues(["users", userId, "orders"]);
-  // const payments = getValues(["users", userId, "payments"]);
-  // const services = getValues(["users", userId, "services"]);
-  // const products = getValues(["users", userId, "products"]);
-  // const fixers = getValues(["users", userId, "fixers"]);
-  return user;
+  return { posts, get, fix, followers, following };
 }
+
 export async function sendChatMessage(message: {
   userId: string;
   receiverId: string;
@@ -366,16 +394,10 @@ export async function readMessages() {
   return getValues(["users", userId, "messages"]);
 }
 export function readRealtimeMessages(userId, callback) {
-  if (!userId) return null;
-  //const userId = getUId();
   return getRealtimeValues(["users", userId, "messages"], callback);
 }
 export function readMessageChanges(userId, callback) {
-  //const userId = auth.currentUser?.uid;
-  //if (!userId) return null;
-  //const userId = getUId();
-  console.log(`userId ${userId}`);
-  return getRealtimeValueChanges(["users", userId, "messages"], callback);
+  return getRealtimeValueChanges(["users", userId, "messages"], [], callback);
 }
 
 export async function getBusiness(userId: string) {
@@ -394,8 +416,16 @@ export async function updateUserProfile(user, newUser) {
   }
 }
 export async function updateBusinessProfile(business, newBusiness) {
-  if (!business)
-    return setValue(["businesses", newBusiness.userId], newBusiness);
+  const userId = getUId();
+  if (!business) {
+    return setValue(["businesses", newBusiness.userId], {
+      ...newBusiness,
+      userId,
+    });
+  }
+  if (!business.userId) {
+    newBusiness.userId = userId;
+  }
   const match = checkIfObjectKeysAndValuesMatch(business, newBusiness);
   const updated = getUnmatchedObjects(business, newBusiness);
   if (match) return;
@@ -403,27 +433,6 @@ export async function updateBusinessProfile(business, newBusiness) {
     return updateValue(["businesses", newBusiness.userId], updated);
   }
 }
-// export async function updateBusinessProfile(business: {
-//   userId: string;
-//   businessName: string;
-//   businessEmail: string;
-//   businessPhone: string;
-//   businessCallPhone: string;
-//   businessLogo: string;
-//   businessAddress: string;
-//   businessLocation: string;
-//   businessLocationPhotos: string;
-//   businessDescription: string;
-//   businessCategory: string;
-//   businessRole: string;
-//   businessWebsite: string;
-//   businessCertifications: string;
-//   currentlocation: string;
-// }) {
-//   const userId = getUId();
-//   setValue(["businesses", userId], business);
-//   setValue(["users", userId, "business"], userId);
-// }
 
 export async function addUser(user: {
   userId: string;
@@ -441,13 +450,44 @@ export async function addUser(user: {
     online: true,
   });
 }
-
-export async function deletePost(id: string) {
-  return removeValue(["posts", id]);
+export async function readPostsFromIds(ids) {
+  const posts = [];
+  for (let i = 0; i < ids.length; i++) {
+    const id = ids[i].id;
+    const post = await getValue(["posts", id]);
+    if (post !== null) {
+      posts.push(post);
+    }
+  }
+  return posts;
 }
 
-export async function readPosts() {
-  return getValues(["posts"]);
+export async function readFixOrGetFromIds(ids, type: string) {
+  const items = [];
+  for (let i = 0; i < ids.length; i++) {
+    const id = ids[i].id;
+    const item = await getValue([type, id]);
+    if (item !== null) {
+      items.push(item);
+    }
+  }
+  return items;
+}
+export async function readAll(node: string) {
+  const userId = getUId();
+  // {
+  //   orderBy: ["time", "desc"],
+  // }
+  return getValues([node]);
+}
+export async function readPosts(type: string, index: number = 0) {
+  const userId = getUId();
+  return getValues(["posts"], {
+    orderBy: ["time", "desc"],
+  });
+}
+export async function readSearchedUsers(value) {
+  return getValues(["users"], { where: ["name", "==", value] });
 }
 export async function readUsers() {
   return getValues(["users"]);
@@ -478,7 +518,7 @@ export function readPost(userId: string, id: string) {
   return getValue(["users", userId, "posts", id]);
 }
 export function readFixGetItem(type: string, userId: string, id: string) {
-  return getValue(["users", userId, type, id]);
+  return getValue([type, id]);
 }
 export function readUser(userId: string) {
   return getValue(["users", userId]);
@@ -488,7 +528,7 @@ export async function deleteComment(
   postId: string,
   id: string
 ) {
-  return removeValue(["users", userId, "posts", postId, "comments", id]);
+  return removeValue(["posts", postId, "comments", id]);
 }
 export async function addComment(
   userId: string,
@@ -507,7 +547,7 @@ export async function addComment(
   const time = Date.now();
 
   const newComment = { userId: myId, id, comment, time };
-  setValue(["users", userId, "posts", postId, "comments", id], newComment);
+  setValue(["posts", postId, "comments", id], newComment);
   setComments([...comments, newComment]);
 }
 
@@ -523,14 +563,14 @@ export async function toggleRepost(
   const reposted = reposts.map((like) => like.id).includes(myId);
 
   if (reposted) {
-    await removeValue(["users", userId, "posts", postId, "repost", myId]);
+    await removeValue(["posts", postId, "repost", myId]);
     if (setReposts) {
       setReposts((repost) => {
         return repost.filter((like) => like.id !== myId);
       });
     }
   } else {
-    await setValue(["users", userId, "posts", postId, "repost", myId], {
+    await setValue(["posts", postId, "repost", myId], {
       id: myId,
       time,
     });
@@ -553,14 +593,14 @@ export async function toggleLike(
   const liked = likes.map((like) => like.id).includes(myId);
 
   if (liked) {
-    await removeValue(["users", userId, "posts", postId, "likes", myId]);
+    await removeValue(["posts", postId, "likes", myId]);
     if (setLikes) {
       setLikes((likes) => {
         return likes.filter((like) => like.id !== myId);
       });
     }
   } else {
-    await setValue(["users", userId, "posts", postId, "likes", myId], {
+    await setValue(["posts", postId, "likes", myId], {
       id: myId,
       time,
     });

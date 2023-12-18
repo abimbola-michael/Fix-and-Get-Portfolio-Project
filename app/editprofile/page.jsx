@@ -985,15 +985,17 @@ export default function EditProfile() {
       <div className="absolute bottom-4 right-4 left-4">
         <ToastContainer />
       </div>
-      <div className="absolute bottom-4 right-4">
-        <AppButton
-          onClick={() => {
-            setComfirm(true);
-          }}
-        >
-          Save
-        </AppButton>
-      </div>
+      {!loading && (
+        <div className="absolute bottom-4 right-4">
+          <AppButton
+            onClick={() => {
+              setComfirm(true);
+            }}
+          >
+            Save
+          </AppButton>
+        </div>
+      )}
       {selectWorkHours && (
         <div
           className="left-0 right-0 bg-gray-300/50 absolute w-full h-full flex flex-col items-center justify-center"

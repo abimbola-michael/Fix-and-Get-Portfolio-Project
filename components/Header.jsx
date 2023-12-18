@@ -54,7 +54,7 @@ export default function Header() {
         <SearchBar searching={searching} setSearching={setSearching} />
       </div>
 
-      {!userId && <LoginActions />}
+      {userId === null && <LoginActions />}
       {userId && (
         <div className="md:hidden flex gap-4 text-3xl items-center">
           <FiSearch
