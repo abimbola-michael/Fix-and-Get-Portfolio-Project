@@ -34,7 +34,6 @@ export default function Home() {
     <main className="w-full max-w-4xl mx-auto h-screen overflow-hidden flex flex-col">
       <Header />
       <div className="overflow-y-auto px-4 flex flex-col">
-        {/* <CategoriesBar /> */}
         <MainPageDisplay />
         <div className="w-full flex flex-col my-4 gap-3">
           <h1 className="font-bold text-lg">Feeds</h1>

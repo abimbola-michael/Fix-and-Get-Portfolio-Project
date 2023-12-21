@@ -517,8 +517,26 @@ export function readRealtimePosts(callback) {
 export function readPost(userId: string, id: string) {
   return getValue(["users", userId, "posts", id]);
 }
-export function readFixGetItem(type: string, userId: string, id: string) {
+export function readFixGetItem(type: string, id: string) {
   return getValue([type, id]);
+}
+export async function readSimilarItems(
+  userId: string,
+  id: string,
+  type: string,
+  category: string
+) {
+  const allItems = await getValues(["users", userId, type]);
+  const similarItems = [];
+  for (let i = 0; i < allItems.length; i++) {
+    if (allItems[i].id === id) continue;
+    const item = await getValue([type, allItems[i].id]);
+    if (item && item.subCategory === category) {
+      similarItems.push(item);
+    }
+  }
+
+  return similarItems;
 }
 export function readUser(userId: string) {
   return getValue(["users", userId]);

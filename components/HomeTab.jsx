@@ -8,7 +8,7 @@ export default function HomeTab({
 }) {
   const selected = name.toLowerCase() === currentTab.toLowerCase();
   return (
-    <div
+    <button
       className={`w-full text-lg text-center px-3 py-2 ${
         selected ? "text-blue-500 border-b-2 border-blue-500 border-solid" : ""
       }`}
@@ -16,6 +16,6 @@ export default function HomeTab({
       onClick={() => setCurrentTab(name)}
     >
       {name}
-    </div>
+    </button>
   );
 }

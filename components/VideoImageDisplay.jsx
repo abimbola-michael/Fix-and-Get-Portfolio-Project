@@ -35,17 +35,6 @@ export default function VideoImageDisplay({
             index={index}
             // indicators="images"
           />
-
-          {/* {type === "video" ? (
-            <video className="object-cover" src={url} autoPlay muted loop />
-          ) : (
-            <Image
-              className="object-cover"
-              src={url}
-              layout="fill"
-              alt="Photo Display"
-            />
-          )} */}
         </div>
         {message && (
           <p className="text-white font-semibold text-lg py-1">{message}</p>

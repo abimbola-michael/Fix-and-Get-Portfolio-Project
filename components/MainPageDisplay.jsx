@@ -5,18 +5,22 @@ import { useSelector } from "react-redux";
 import Carousel from "./Carousel";
 import HomeTab from "./HomeTab";
 import AppButton from "./AppButton";
+import { useRouter } from "next/navigation";
 
 export default function MainPageDisplay() {
   //const currentTab = useSelector((state) => state.app.tab);
   const [currentCategory, setCurrentCategory] = useState("");
   const [currentTab, setCurrentTab] = useState("Fix");
   const hoverTimeout = useRef(null);
+  const router = useRouter();
   const categories = currentTab === "Fix" ? fixCategories : getCategories;
 
   const handleMouseEnter = (category) => {
     clearTimeout(hoverTimeout.current);
     hoverTimeout.current = setTimeout(() => {
-      setCurrentCategory((cat) => (cat != "" ? "" : category.name));
+      setCurrentCategory((cat) =>
+        cat === "" || cat !== category.name ? category.name : ""
+      );
     }, 100);
   };
 
@@ -100,11 +104,29 @@ export default function MainPageDisplay() {
                 <li
                   key={category.name}
                   className="hover:text-blue-500 w-[47%] md:w-[30%]"
+                  onClick={() => {
+                    router.push(
+                      `/search?category=${
+                        category.name
+                      }&type=${currentTab.toLocaleLowerCase()}`
+                    );
+                  }}
                 >
                   {category.name}
                   <ul className="flex flex-col gap-1 text-sm text-gray-700">
                     {category.items.map((item) => (
-                      <li key={item} className="hover:text-blue-500">
+                      <li
+                        key={item}
+                        className="hover:text-blue-500"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(
+                            `/search?category=${
+                              category.name
+                            }&title=${item}&type=${currentTab.toLocaleLowerCase()}`
+                          );
+                        }}
+                      >
                         {item}
                       </li>
                     ))}

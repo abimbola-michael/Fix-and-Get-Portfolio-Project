@@ -1,11 +1,16 @@
+"use client";
 import Image from "next/image";
 import React from "react";
 import AppButton from "./AppButton";
 import { GrFavorite } from "react-icons/gr";
 import { stringsToList } from "@/utils/helpers";
+import { useRouter } from "next/navigation";
 
 export default function FixGetItem({
   item: {
+    userId,
+    id,
+    type,
     name,
     desc,
     price,
@@ -18,9 +23,12 @@ export default function FixGetItem({
   },
   onClick,
 }) {
+  const router = useRouter();
   const urls = stringsToList(url);
   const mediaTypes = stringsToList(mediaType);
-  function viewPost() {}
+  function viewPost() {
+    router.push(`/item?type=${type}&id=${id}&userId=${userId}`);
+  }
 
   return (
     <li

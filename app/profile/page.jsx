@@ -44,6 +44,9 @@ import { IoCall } from "react-icons/io5";
 import VideoImageDisplay from "@/components/VideoImageDisplay";
 import { BsNutFill } from "react-icons/bs";
 import ProgressView from "@/components/ProgressView";
+import CircleProgressView from "@/components/CircleProgressView";
+
+// import { Document, Page } from "react-pdf-thumbnail";
 
 export default function Profile() {
   // const [type, setType] = useState("fix");
@@ -79,7 +82,6 @@ export default function Profile() {
   useEffect(() => {
     if (post) {
       setProgress(0);
-      console.log(`post: ${post}`);
       addPost(
         post,
         (progress) => {
@@ -95,7 +97,6 @@ export default function Profile() {
 
     if (items) {
       setProgress(0);
-      console.log(`items: ${items}`);
       addItems(
         items,
         (progress) => {
@@ -122,9 +123,7 @@ export default function Profile() {
         const { posts, get, fix, followers, following } = await readUserStats(
           userId
         );
-        console.log(
-          `posts: ${posts}, get: ${get}, fix: ${fix}, followers: ${followers}, following: ${following}`
-        );
+
         user.posts = posts ?? [];
         user.get = get ?? [];
         user.fix = fix ?? [];
@@ -137,6 +136,7 @@ export default function Profile() {
       setUser(user);
       setBusiness(business);
       setLoading(false);
+      //const cetifications = stringsToList(business.businessCertifications);
     }
     getUserData();
   }, [userId, myId]);
@@ -190,6 +190,12 @@ export default function Profile() {
   return (
     <div className="h-screen w-full max-w-4xl mx-auto overflow-hidden flex flex-col">
       <Header />
+      {/* <CircleProgressView
+        progress={90}
+        size={150}
+        strokeWidth={10}
+        // progressColor="#000"
+      /> */}
       {progress !== null && progress > 0 && (
         <ProgressView progress={progress} />
       )}
@@ -363,7 +369,7 @@ export default function Profile() {
                     outline={currentCategory !== category.name}
                     onClick={() => {
                       setCurrentCategory((cat) =>
-                        cat != "" ? "" : category.name
+                        cat === "" || cat !== category.name ? category.name : ""
                       );
 
                       setCurrentSubCategory("");
@@ -385,7 +391,7 @@ export default function Profile() {
                     outline={currentSubCategory !== category.name}
                     onClick={() => {
                       setCurrentSubCategory((cat) =>
-                        cat != "" ? "" : category.name
+                        cat === "" || cat !== category.name ? category.name : ""
                       );
                       setTitle("");
                     }}
@@ -402,7 +408,11 @@ export default function Profile() {
                 <li key={name}>
                   <AppButton
                     outline={title !== name}
-                    onClick={() => setTitle((tit) => (tit != "" ? "" : name))}
+                    onClick={() =>
+                      setTitle((tit) =>
+                        tit === "" || tit !== name ? name : ""
+                      )
+                    }
                   >
                     {name}
                   </AppButton>
@@ -475,8 +485,65 @@ export default function Profile() {
                 />
                 <ProfileDetail
                   name={"Business Certification"}
-                  value={business.businessName}
-                />
+                  // value={business.businessN}
+                >
+                  {business.businessCertifications && (
+                    <ul className="w-full flex flex-col">
+                      {stringsToList(business.businessCertifications).map(
+                        (certification) => (
+                          // <div key={certification}>
+                          //   <Document
+                          //     file={certification}
+                          //     // onLoadSuccess={onDocumentLoadSuccess}
+                          //   >
+                          //     <Page pageNumber={1} width={100} />
+                          //   </Document>
+                          //   <Image
+                          //     src={document.querySelector("canvas").toDataURL()}
+                          //     alt="PDF Thumbnail"
+                          //   />
+                          // </div>
+                          // <div
+                          //   key={certification}
+                          //   className="rpv-core__viewer"
+                          //   style={{
+                          //     border: "1px solid rgba (0, 0, 0, 0.3)",
+                          //     display: "flex",
+                          //     height: "100%",
+                          //   }}
+                          // >
+                          //   <div
+                          //     style={{
+                          //       borderRight: "1px solid rgba (0, 0, 0, 0.3)",
+                          //       overflow: "auto",
+                          //       width: "30%",
+                          //     }}
+                          //   >
+                          //     <Thumbnails />
+                          //   </div>
+                          //   <div style={{ flex: 1 }}>
+                          //     <Viewer
+                          //       fileUrl={certification}
+                          //       plugins={[thumbnailPluginInstance]}
+                          //     />
+                          //   </div>
+                          // </div>
+                          <object
+                            key={certification}
+                            data={certification}
+                            type="application/pdf"
+                            className="w-full h-[150px] object-cover overflow-hidden"
+                          >
+                            <p>
+                              Alternative text - include a link{" "}
+                              <a href={certification}>to the PDF!</a>
+                            </p>
+                          </object>
+                        )
+                      )}
+                    </ul>
+                  )}
+                </ProfileDetail>
               </div>
             )}
             {currentTab === "Posts" && (

@@ -20,6 +20,7 @@ import { PiShareFatBold } from "react-icons/pi";
 import { FaRegComment } from "react-icons/fa";
 import AppButton from "./AppButton";
 import CommentItem from "./CommentItem";
+import { useRouter } from "next/navigation";
 
 export default function PostItem({
   post: {
@@ -38,6 +39,7 @@ export default function PostItem({
   isFeed = false,
   onClick,
 }) {
+  const router = useRouter();
   const [user, setUser] = useState(null);
   const [comments, setComments] = useState([]);
   const [likes, setLikes] = useState([]);
@@ -61,10 +63,10 @@ export default function PostItem({
     getUser();
   }, [userId, id]);
   return (
-    <div className="w-full flex flex-col gap-2">
+    <div className="w-full flex flex-col gap-2 cursor-pointer">
       {user && (
         <div
-          key={user.id}
+          key={userId}
           className="flex gap-2 items-center"
           onClick={() => {}}
         >
@@ -77,7 +79,14 @@ export default function PostItem({
           />
           <div className="grow flex flex-col">
             <div className="flex justify-between items-center">
-              <p className="text-md">{user.name}</p>
+              <p
+                className="text-md"
+                onClick={() => {
+                  router.push(`/profile?userId=${userId}`);
+                }}
+              >
+                {user.name}
+              </p>
               <p className="text-[12px] text-gray-500">
                 {convertMilisecToTime(time)}
               </p>
@@ -96,7 +105,7 @@ export default function PostItem({
           {urls.map((url, index) => (
             <div
               key={url}
-              className={`relative p-1 ${
+              className={`cursor-pointer relative p-1 ${
                 urls.length < 3 ? "h-full" : "h-[50%]"
               } ${
                 urls.length == 1 || (index === 2 && urls.length === 3)

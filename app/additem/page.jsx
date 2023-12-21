@@ -88,7 +88,7 @@ export default function AddItem() {
                   outline={currentCategory !== category.name}
                   onClick={() => {
                     setCurrentCategory((cat) =>
-                      cat != "" ? "" : category.name
+                      cat === "" || cat !== category.name ? category.name : ""
                     );
                     setCurrentSubCategory("");
                     setTitle("");
@@ -116,7 +116,7 @@ export default function AddItem() {
                     outline={currentSubCategory !== category.name}
                     onClick={() => {
                       setCurrentSubCategory((cat) =>
-                        cat != "" ? "" : category.name
+                        cat === "" || cat !== category.name ? category.name : ""
                       );
                       setTitle("");
                     }}
@@ -141,7 +141,11 @@ export default function AddItem() {
                 <li key={name}>
                   <AppButton
                     outline={title !== name}
-                    onClick={() => setTitle((tit) => (tit != "" ? "" : name))}
+                    onClick={() =>
+                      setTitle((tit) =>
+                        tit === "" || tit !== name ? name : ""
+                      )
+                    }
                   >
                     {name}
                   </AppButton>

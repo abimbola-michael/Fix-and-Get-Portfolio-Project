@@ -11,9 +11,7 @@ export default function ProfileDetail({
     <div className="w-full flex items-center border-b-2 border-gray-200 py-2 my-2">
       <div className="w-full flex flex-col items-start cursor-pointer">
         <p className="text-sm text-gray-500">{name}</p>
-        {message && (
-          <p className="text-[12px] text-gray-300 font-bold mb-2">{message}</p>
-        )}
+        {message && <p className="text-[12px] text-gray-400 mb-2">{message}</p>}
         {value && <p className="text-sm text-black">{value}</p>}
         {children && <div className="mt-2 w-full text-sm">{children}</div>}
       </div>

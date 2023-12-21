@@ -20,7 +20,11 @@ export function ProviderChild({ children }) {
   useEffect(
     () =>
       onAuthStateChanged(auth, (user) => {
-        dispatch(changeCurrentUserId(user?.uid));
+        if (user) {
+          dispatch(changeCurrentUserId(user?.uid));
+        } else {
+          dispatch(changeCurrentUserId(null));
+        }
       }),
     [dispatch]
   );

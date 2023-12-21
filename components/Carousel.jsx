@@ -85,6 +85,7 @@ export default function Carousel({
   }, [currentIndex, urls.length, callback]);
 
   useEffect(() => {
+    //console.log(`urls = ${urls}`);
     if (!autoSlide) return;
     const slideInterval = setInterval(nextSlide, slideDuration);
     return () => {
@@ -123,7 +124,7 @@ export default function Carousel({
                 <Image
                   className="object-cover w-full h-full aspect-auto"
                   src={url}
-                  alt={`${url}_image`}
+                  alt={`${url} Image`}
                   width={1000}
                   height={700}
                 />
@@ -135,14 +136,18 @@ export default function Carousel({
       <div
         className={`hidden group-hover:${
           urls.length === 0 || isFirstSlide ? "hidden" : "block"
-        } absolute top-[50%] left-5 -translate-x-0 translate-y-[-50%] text-2xl rounded-full p-2 bg-black/20 text-white cursor-pointer`}
+        } absolute top-[50%] left-5 -translate-x-0 translate-y-[-50%] text-2xl rounded-full p-2 bg-black/20 text-white cursor-pointer ${
+          indicators === "images" ? "mb-[20%]" : ""
+        }`}
       >
         <BsChevronCompactLeft onClick={prevSlide} size={30} />
       </div>
       <div
         className={`hidden group-hover:${
           urls.length === 0 || isLastSlide ? "hidden" : "block"
-        } absolute top-[50%] right-5 -translate-x-0 translate-y-[-50%] text-2xl rounded-full p-2 bg-black/20 text-white cursor-pointer`}
+        } absolute top-[50%] right-5 -translate-x-0 translate-y-[-50%] text-2xl rounded-full p-2 bg-black/20 text-white cursor-pointer ${
+          indicators === "images" ? "mb-[20%]" : ""
+        }`}
       >
         <BsChevronCompactRight onClick={nextSlide} size={30} />
       </div>
@@ -158,7 +163,7 @@ export default function Carousel({
               <Image
                 className="w-full h-full aspect-auto object-cover"
                 src={url}
-                alt={`imag_${url}`}
+                alt={`img ${url}`}
                 width={70}
                 height={50}
                 onClick={() => setCurrentIndex(index)}
@@ -167,7 +172,7 @@ export default function Carousel({
           ))}
         </ul>
       )}
-      {indicators === "dots" && (
+      {indicators === "dots" && urls.length > 1 && (
         <div className="absolute bottom-4 right-0 left-0 flex flex-row justify-center items-center">
           {urls.map((url, index) => (
             <div
