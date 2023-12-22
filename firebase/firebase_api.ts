@@ -26,6 +26,22 @@ export function getUId() {
 export function getUName() {
   return auth.currentUser?.displayName;
 }
+export async function sendOrderOrBookingRequest(value, type, userId) {
+  const node = type === "fix" ? "jobs" : "orders";
+  const myId = getUId();
+  const id = getId(["users", myId, node]);
+  const time = Date.now();
+  const newOrderOrJob = {
+    ...value,
+    id,
+    bookOrOrderTime: time,
+    status: "pending",
+    ownerId: myId,
+    userId,
+  };
+  await setValue(["users", myId, node, id], newOrderOrJob);
+  await setValue(["users", userId, node, id], newOrderOrJob);
+}
 export async function addItems(
   items: Array<{
     type: string;
@@ -449,6 +465,10 @@ export async function addUser(user: {
     lastSeen: time,
     online: true,
   });
+}
+export async function readJobsOrOrders(type) {
+  const userId = getUId();
+  return getValues(["users", userId, type]);
 }
 export async function readPostsFromIds(ids) {
   const posts = [];

@@ -151,6 +151,12 @@ export function convertMilisecToTime(milisec?: number) {
   return `${hours}:${minutes < 10 ? `0${minutes}` : minutes} ${ampm}`;
 }
 
+export function convertTwentyFourHoursToTwelveHours(time: string) {
+  const hours = parseInt(time.split(":")[0]);
+  const minutes = time.split(":")[1];
+  const ampm = hours < 12 ? "AM" : "PM";
+  return `${hours % 12}:${minutes} ${ampm}`;
+}
 export async function getFile(path: string) {
   const fileName = path.split("/").pop();
   const response = await fetch(path);

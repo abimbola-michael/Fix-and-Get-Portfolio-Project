@@ -18,6 +18,7 @@ import { PiList } from "react-icons/pi";
 import { auth, logout } from "@/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { useSelector } from "react-redux";
+import { GrFavorite } from "react-icons/gr";
 
 export default function Header() {
   const pathname = usePathname();
@@ -121,13 +122,22 @@ export default function Header() {
                   </p>
             </Link> */}
           <Link
-            href={"/list"}
+            href={"/jobsandorders"}
             className={`flex gap-2 items-center ${
-              pathname === "/list" ? "text-blue-500" : ""
+              pathname === "/jobsandorders" ? "text-blue-500" : ""
             } hover:text-blue-500`}
           >
             <LuList />
             <p className={`md:hidden font-bold text-lg `}>Jobs and Orders</p>
+          </Link>
+          <Link
+            href={"/saves"}
+            className={`flex gap-2 items-center ${
+              pathname === "/saves" ? "text-blue-500" : ""
+            } hover:text-blue-500`}
+          >
+            <GrFavorite />
+            <p className={`md:hidden font-bold text-lg `}>Saves</p>
           </Link>
           {/* <Link href={"/cart"} className={`flex gap-2 items-center ${
                     pathname === "/search" ? "text-blue-500" : ""

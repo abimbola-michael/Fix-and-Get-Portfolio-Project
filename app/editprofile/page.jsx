@@ -37,39 +37,15 @@ import React, { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { ToastContainer, toast } from "react-toastify";
 import { IoMdCloseCircle } from "react-icons/io";
+import { allBanks } from "../banks";
+import ComfirmPassword from "@/components/ComfirmPassword";
+import SelectWorkHours from "@/components/SelectWorkHours";
+import AddAccountDetails from "@/components/AddAccountDetails";
+import AddAddress from "@/components/AddAddress";
 // import { Document, Page, pdfjs } from "react-pdf";
 
 // pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
-function convertBusinessHoursStringToObjects(businessOpenHours) {
-  if (!businessOpenHours) {
-    return [
-      {
-        startDay: "",
-        endDay: "",
-        startTime: "",
-        endTime: "",
-      },
-    ];
-  }
-  const values = stringsToList(businessOpenHours);
-  const hoursValues = values.map((value) => {
-    const daysTimes = stringsToList(value, " ");
-    const days = stringsToList(daysTimes[0], "-");
-    const times = stringsToList(daysTimes[1], "-");
-    const startDay = days[0];
-    const endDay = days[1];
-    const startTime = times[0];
-    const endTime = times[1];
 
-    return {
-      startDay,
-      endDay,
-      startTime,
-      endTime,
-    };
-  });
-  return hoursValues;
-}
 export default function EditProfile() {
   //const { location, setLocation } = useLocation();
   const [editType, setEditType] = useState("profile");
@@ -79,6 +55,8 @@ export default function EditProfile() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [address, setAddress] = useState("");
+
   const [profilePhoto, setProfilePhoto] = useState("");
   const [businessCallPhone, setBusinessCallPhone] = useState("");
   const [businessName, setBusinessName] = useState("");
@@ -94,8 +72,13 @@ export default function EditProfile() {
   const [businessWebsite, setBusinessWebsite] = useState("");
   const [businessCertifications, setBusinessCertifications] = useState("");
   const [businessOpenHours, setBusinessOpenHours] = useState("");
+  const [businessGetMeetLocation, setBusinessGetMeetLocation] = useState("");
+  const [businessFixMeetLocation, setBusinessFixMeetLocation] = useState("");
+  const [businessGetPaymentOption, setBusinessGetPaymentOption] = useState("");
+  const [businessFixPaymentOption, setBusinessFixPaymentOption] = useState("");
+  const [businessAccountDetails, setBusinessAccountDetails] = useState("");
+
   const [currentLocation, setCurrentLocation] = useState("");
-  const [comfirimPassword, setComfirmPassword] = useState("");
   const [user, setUser] = useState(null);
   const [business, setBusiness] = useState(null);
   const userId = useSelector((state) => state.app.currentUserId);
@@ -114,9 +97,12 @@ export default function EditProfile() {
   const [comfirm, setComfirm] = useState(false);
   const [comfirmed, setComfirmed] = useState(false);
   const [selectWorkHours, setSelectWorkHours] = useState(false);
+  const [addAccountDetails, setAddAccountDetails] = useState(false);
+  const [addAddress, setAddAddress] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [hours, setHours] = useState([]);
-  const [selectedDays, setSelectedDays] = useState([]);
+  const [bankDetails, setBankDetails] = useState([]);
+  const [addresses, setAddresses] = useState([]);
+  //const [selectedDays, setSelectedDays] = useState([]);
   const APIKEY = "";
   const fileInputRef = useRef(null);
   const certfileInputRef = useRef(null);
@@ -127,6 +113,7 @@ export default function EditProfile() {
     email,
     phone,
     profilePhoto,
+    address,
   };
 
   const newBusiness = {
@@ -145,124 +132,25 @@ export default function EditProfile() {
     businessWebsite,
     businessCertifications,
     businessOpenHours,
+    businessGetMeetLocation,
+    businessFixMeetLocation,
+    businessGetPaymentOption,
+    businessFixPaymentOption,
+    businessAccountDetails,
     // currentLocation,
   };
-  const times = Array.from({ length: 24 }, (_, i) => {
-    //const hour =  i < 10 ? `0${i}` : i;
-    const hour = i % 12 || 12;
-    return `${hour}:00 ${i < 12 ? "AM" : "PM"}`;
-  });
-  const days = Array.from({ length: 7 }, (_, i) => {
-    if (i === 0) return "Monday";
-    if (i === 1) return "Tuesday";
-    if (i === 2) return "Wednesday";
-    if (i === 3) return "Thursday";
-    if (i === 4) return "Friday";
-    if (i === 5) return "Saturday";
-    if (i === 6) return "Sunday";
-  });
-  function getPreviouslyUnSelectedDays(index) {
-    const list = hours.slice(0, index);
-    let prevSelDays = [];
-    list.forEach((hour) => {
-      const startIndex = days.indexOf(hour.startDay);
-      const endIndex = hour.endDay ? days.indexOf(hour.endDay) : startIndex;
-      const possibleDays = days.slice(startIndex, endIndex + 1);
-      prevSelDays = [...prevSelDays, ...possibleDays];
-    });
-    return days.filter((day, i) => !prevSelDays.includes(day));
-  }
-  function getUnselectedDays() {
-    return days.filter((day, i) => !selectedDays.includes(day));
-  }
-
-  function removeWorkingHour(index) {
-    setHours((hours) => hours.filter((hour, i) => i !== index));
-  }
-  function addNewWorkingHour() {
-    setHours((hours) => [
-      ...hours,
-      { startDay: "", endDay: "", startTime: "", endTime: "" },
-    ]);
-  }
-  function updateWorkingHours(type, index, value) {
-    if (type === "startDay" || type === "endDay") {
-      setSelectedDays((seldays) => {
-        if (
-          seldays.length > 0 &&
-          days.indexOf(value) > days.indexOf(seldays[seldays.length - 1])
-        ) {
-          return [
-            ...seldays,
-            ...days.slice(
-              days.indexOf(seldays[seldays.length - 1]) + 1,
-              days.indexOf(value) + 1
-            ),
-          ];
-        }
-        return [...seldays, value];
-      });
-    }
-    setHours((hours) => {
-      const newHours = hours.map((hour, i) => {
-        if (i === index) {
-          return { ...hour, [type]: value };
-        } else {
-          return hour;
-        }
-      });
-      return newHours;
-    });
-  }
-  function getSelectedDaysFromBusinessOpenHours() {
-    if (!businessOpenHours) {
-      // setHours([
-      //   {
-      //     startDay: "Monday",
-      //     endDay: "Friday",
-      //     startTime: "7:00 AM",
-      //     endTime: "7:00 PM",
-      //   },
-      // ]);
-      setHours([
-        {
-          startDay: "",
-          endDay: "",
-          startTime: "",
-          endTime: "",
-        },
-      ]);
-    }
-    const values = stringsToList(businessOpenHours);
-    const hoursValues = values.map((value) => {
-      const daysTimes = stringsToList(value, " ");
-      const days = stringsToList(daysTimes[0], "-");
-      const times = stringsToList(daysTimes[1], "-");
-      const startDay = days[0];
-      const endDay = days[1];
-      const startTime = times[0];
-      const endTime = times[1];
-
-      return {
-        startDay,
-        endDay,
-        startTime,
-        endTime,
-      };
-    });
-    setHours(hoursValues);
-  }
-
-  function convertToBusinessHours() {
-    const hoursStrings = hours.map((hour) => {
-      const startDay = hour.startDay;
-      const endDay = hour.endDay;
-      const startTime = hour.startTime;
-      const endTime = hour.endTime;
-      return `${startDay}-${endDay} ${startTime}-${endTime}`;
-    });
-    return listToStrings(hoursStrings);
-  }
+  const getMeetLocationOptions = [
+    "Shop Only",
+    "Shop and Delivery",
+    "Delivery Only",
+  ];
+  const fixMeetLocationOptions = [
+    "Shop Only",
+    "Shop and Client Location",
+    "Client Location Only",
+  ];
+  const getPaymentOptions = ["Pay after Delivery", "Pay before Delivery"];
+  const fixPaymentOptions = ["Pay after Service", "Pay before Service"];
 
   useEffect(() => {
     async function readUser() {
@@ -275,6 +163,7 @@ export default function EditProfile() {
         setName(user.name);
         setEmail(user.email);
         setPhone(user.phone);
+        setAddress(user.address ?? "");
         setProfilePhoto(user.profilePhoto);
         setPath(user.profilePhoto);
       }
@@ -290,6 +179,11 @@ export default function EditProfile() {
         setBusinessLocationPhotos(business.businessLocationPhotos);
         setBusinessDescription(business.businessDescription);
         setBusinessCategory(business.businessCategory);
+        setBusinessAccountDetails(business.businessAccountDetails);
+        setBusinessGetMeetLocation(business.businessGetMeetLocation);
+        setBusinessFixMeetLocation(business.businessFixMeetLocation);
+        setBusinessGetPaymentOption(business.businessGetPaymentOption);
+        setBusinessFixPaymentOption(business.businessFixPaymentOption);
         setBusinessRole(business.businessRole);
         setBusinessWebsite(business.businessWebsite);
         setBusinessCertifications(business.businessCertifications);
@@ -297,7 +191,6 @@ export default function EditProfile() {
         setPaths(stringsToList(business.businessLocationPhotos));
         setCertPaths(stringsToList(business.businessCertifications));
         setBusinessOpenHours(business.businessOpenHours ?? "");
-        convertBusinessHoursStringToObjects(business?.businessOpenHours ?? "");
       }
     }
     readUser();
@@ -643,6 +536,20 @@ export default function EditProfile() {
               onChange={setPhone}
               type="phone"
             />
+            <ProfileDetail
+              name="Address"
+              value={address?.replace(",", "\n")}
+              rightChild={
+                <AppButton
+                  outline={true}
+                  onClick={() => {
+                    setAddAddress(true);
+                  }}
+                >
+                  Add
+                </AppButton>
+              }
+            />
           </>
         ) : editType === "password" ? (
           <LoginInput
@@ -810,7 +717,7 @@ export default function EditProfile() {
             </ProfileDetail> */}
             <ProfileDetail
               name="Business Work Hours"
-              value={businessOpenHours}
+              value={businessOpenHours?.replace(",", "\n")}
               rightChild={
                 <AppButton
                   outline={true}
@@ -818,7 +725,7 @@ export default function EditProfile() {
                     setSelectWorkHours(true);
                   }}
                 >
-                  Choose Work Hours
+                  Add
                 </AppButton>
               }
             />
@@ -885,7 +792,87 @@ export default function EditProfile() {
                 </div>
               }
             ></ProfileDetail>
+            {businessCategory?.includes("fix") && (
+              <ProfileDetail name="Business Fix Meet Location">
+                <select
+                  value={businessFixMeetLocation}
+                  onChange={(e) => {
+                    setBusinessFixMeetLocation(e.target.value);
+                  }}
+                >
+                  {fixMeetLocationOptions.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </ProfileDetail>
+            )}
 
+            {businessCategory?.includes("fix") && (
+              <ProfileDetail name="Business Fix Payment Option">
+                <select
+                  value={businessFixPaymentOption}
+                  onChange={(e) => {
+                    setBusinessFixPaymentOption(e.target.value);
+                  }}
+                >
+                  {fixPaymentOptions.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </ProfileDetail>
+            )}
+            {businessCategory?.includes("get") && (
+              <ProfileDetail name="Business Get Meet Location">
+                <select
+                  value={businessGetMeetLocation}
+                  onChange={(e) => {
+                    setBusinessGetMeetLocation(e.target.value);
+                  }}
+                >
+                  {getMeetLocationOptions.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </ProfileDetail>
+            )}
+
+            {businessCategory?.includes("get") && (
+              <ProfileDetail name="Business Get Payment Option">
+                <select
+                  value={businessGetPaymentOption}
+                  onChange={(e) => {
+                    setBusinessGetPaymentOption(e.target.value);
+                  }}
+                >
+                  {getPaymentOptions.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </ProfileDetail>
+            )}
+
+            <ProfileDetail
+              name="Business Account Details"
+              value={businessAccountDetails?.replace(",", "\n")}
+              rightChild={
+                <AppButton
+                  outline={true}
+                  onClick={() => {
+                    setAddAccountDetails(true);
+                  }}
+                >
+                  Add
+                </AppButton>
+              }
+            />
             <ProfileDetail
               name="Certifications"
               rightChild={
@@ -996,136 +983,42 @@ export default function EditProfile() {
           </AppButton>
         </div>
       )}
+      {addAddress && (
+        <AddAddress
+          address={address}
+          onClose={() => {
+            setAddAddress(false);
+          }}
+          onSave={setAddress}
+        />
+      )}
+      {addAccountDetails && (
+        <AddAccountDetails
+          accountDetails={businessAccountDetails}
+          onClose={() => {
+            setAddAccountDetails(false);
+          }}
+          onSave={setBusinessAccountDetails}
+        />
+      )}
       {selectWorkHours && (
-        <div
-          className="left-0 right-0 bg-gray-300/50 absolute w-full h-full flex flex-col items-center justify-center"
-          onClick={() => {}}
-        >
-          <div className="bg-white flex flex-col items-center justify-center gap-5 px-3 md:px-5 py-4 rounded-lg w-full md:w-[70%] min-h-[50%]">
-            <h2 className="font-bold text-lg text-center">Select Work Hours</h2>
-            <ul className="w-full flex flex-col gap-6 md:gap-3 overflow-y-auto">
-              {hours.map((hour, i) => (
-                <div
-                  key={i}
-                  className="w-full flex flex-col gap-3 md:gap-0 md:flex-row items-center justify-evenly px-2 group"
-                >
-                  <div className="flex items-center">
-                    <HoursChooser
-                      title={"Start Day"}
-                      list={getPreviouslyUnSelectedDays(i)}
-                      value={hour.startDay}
-                      onChange={(value) => {
-                        updateWorkingHours("startDay", i, value);
-                      }}
-                    />
-                    <HoursChooser
-                      title={"End Day"}
-                      list={getPreviouslyUnSelectedDays(i)}
-                      value={hour.endDay}
-                      onChange={(value) => {
-                        updateWorkingHours("endDay", i, value);
-                      }}
-                    />
-                  </div>
-
-                  <div className="flex items-center">
-                    <HoursChooser
-                      title={"Start Time"}
-                      list={times}
-                      value={hour.startTime}
-                      onChange={(value) => {
-                        updateWorkingHours("startTime", i, value);
-                      }}
-                    />
-                    <HoursChooser
-                      title={"End Time"}
-                      list={times}
-                      value={hour.endTime}
-                      onChange={(value) => {
-                        updateWorkingHours("endTime", i, value);
-                      }}
-                    />
-                  </div>
-
-                  <IoMdCloseCircle
-                    className="hidden group-hover:block text-lg duration-300 ease-in-out transition-all"
-                    onClick={() => {
-                      removeWorkingHour(i);
-                    }}
-                  />
-                </div>
-              ))}
-            </ul>
-
-            <div className="w-full flex justify-evenly items-center">
-              <AppButton
-                outline={true}
-                onClick={() => {
-                  setSelectWorkHours(false);
-                }}
-              >
-                Cancel
-              </AppButton>
-              <AppButton
-                outline={true}
-                onClick={() => {
-                  addNewWorkingHour();
-                }}
-              >
-                Add
-              </AppButton>
-
-              <AppButton
-                onClick={() => {
-                  const businessHourString = convertToBusinessHours();
-                  if (businessHourString != businessOpenHours) {
-                    setBusinessOpenHours(businessHourString);
-                  }
-                  setSelectWorkHours(false);
-                }}
-              >
-                Done
-              </AppButton>
-            </div>
-          </div>
-        </div>
+        <SelectWorkHours
+          businessOpenHours={businessOpenHours}
+          onClose={() => {
+            setSelectWorkHours(false);
+          }}
+          onSave={setBusinessOpenHours}
+        />
       )}
       {comfirm && (
-        <div
-          className="left-0 right-0 bg-gray-300/50 absolute w-full h-full flex flex-col items-center justify-center"
-          onClick={() => {
-            //setComfirm(false);
+        <ComfirmPassword
+          onClose={() => {
+            setComfirm(false);
           }}
-        >
-          <div className="bg-white flex flex-col items-center justify-center gap-5 px-3 md:px-5 py-4 rounded-lg w-[50%] h-[50%]">
-            <h2 className="font-bold text-lg text-center">Comfirm Password</h2>
-            <LoginInput
-              placeholder={"Password"}
-              value={comfirimPassword}
-              onChange={setComfirmPassword}
-              type="password"
-            />
-
-            <div className="w-full flex justify-evenly items-center">
-              <AppButton
-                outline={true}
-                onClick={() => {
-                  setComfirm(false);
-                }}
-              >
-                Cancel
-              </AppButton>
-              <AppButton
-                onClick={() => {
-                  comfirmPasswordAndSave(comfirimPassword);
-                }}
-              >
-                Save
-              </AppButton>
-            </div>
-          </div>
-        </div>
+          onComfirm={comfirmPasswordAndSave}
+        />
       )}
+
       {loading && <Loader message={comfirm ? "Saving" : ""} />}
     </div>
   );

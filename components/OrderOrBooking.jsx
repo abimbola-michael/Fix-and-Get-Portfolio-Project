@@ -6,6 +6,9 @@ import ProfileDetail from "./ProfileDetail";
 import Login from "@/app/login/page";
 
 export default function OrderOrBooking({
+  id,
+  url,
+  mediaType,
   title,
   negotiable,
   currency,
@@ -34,7 +37,7 @@ export default function OrderOrBooking({
       >
         <div className="w-full text-center">
           <h1 className="font-bold text-xl">
-            {type === "fix" ? "Booking" : "Order"}
+            {type === "fix" ? "Job" : "Order"}
           </h1>
           <h2 className="font-bold text-md">{title}</h2>
           <p className="py-2 font-bold text-3xl text-blue-500">
@@ -51,45 +54,40 @@ export default function OrderOrBooking({
             onChange={setBudget}
           />
         )}
-        {type === "get" && (
-          <LoginInput
-            placeholder="Quantity"
-            type="number"
-            value={qty}
-            minValue={1}
-            onChange={setQty}
-          />
-        )}
-        <LoginInput
-          name={"Date"}
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-        />
+        {
+          /*type === "get"*/ true && (
+            <LoginInput
+              placeholder="Quantity"
+              type="number"
+              value={qty}
+              minValue={1}
+              onChange={setQty}
+            />
+          )
+        }
+        <LoginInput name={"Date"} type="date" value={date} onChange={setDate} />
         <LoginInput
           name={"Time"}
           type="time"
           value={time}
-          onChange={(e) => setTime(e.target.value)}
+          onChange={(time) => {
+            console.log(`time = ${time}`);
+            setTime(time);
+          }}
         />
-        <LoginInput
-          name={"Time"}
-          type="time"
-          value={time}
-          onChange={(e) => setTime(e.target.value)}
-        />
+
         <LoginInput
           name={"Meeting Location"}
           type="text"
           value={meetingLocation}
-          onChange={(e) => setMeetingLocation(e.target.value)}
+          onChange={setMeetingLocation}
           placeholder="Where to meet"
         />
         <LoginInput
           name={"Description"}
           type="text"
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={setDescription}
           placeholder="Describe your order or booking"
         />
 
@@ -107,12 +105,18 @@ export default function OrderOrBooking({
           <AppButton
             onClick={() => {
               onComplete?.({
+                title,
+                url,
+                mediaType,
+                fixOrGetId: id,
+                fixOrGet: type,
                 qty,
                 time,
                 date,
                 meetingLocation,
                 description,
-                budget,
+                price: budget,
+                currency,
               });
             }}
           >

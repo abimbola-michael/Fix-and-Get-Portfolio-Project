@@ -17,6 +17,7 @@ import {
   readSimilarItems,
   readUser,
   sendChatMessage,
+  sendOrderOrBookingRequest,
 } from "@/firebase/firebase_api";
 import { changeChatUserId } from "@/slices/appSlice";
 import { convertMilisecToTime, stringsToList } from "@/utils/helpers";
@@ -27,6 +28,7 @@ import { AiOutlineLike } from "react-icons/ai";
 import { BsCartPlus } from "react-icons/bs";
 import { MdOutlineSaveAlt } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
+import { ToastContainer, toast } from "react-toastify";
 
 export default function ItemPage() {
   const [showMessager, setShowMessager] = useState(false);
@@ -251,19 +253,29 @@ export default function ItemPage() {
       )}
       {showOrderOrBooking && (
         <OrderOrBooking
+          id={item?.id}
+          url={item?.url}
+          mediaType={item?.mediaType}
           title={item?.title}
           negotiable={item?.negotiable}
           currency={item?.currency}
-          price={item?.price}
+          price={item?.discPrice || item?.price}
           type={type}
           onClose={() => {
             setShowOrderOrBooking(false);
           }}
           onComplete={(result) => {
+            setLoading(true);
             setShowOrderOrBooking(false);
+
+            sendOrderOrBookingRequest(result, type, userId).then(() => {
+              setLoading(false);
+              toast.success("Request sent successfully");
+            });
           }}
         />
       )}
+      <ToastContainer />
     </div>
   );
 }
